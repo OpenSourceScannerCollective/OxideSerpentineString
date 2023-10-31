@@ -1,6 +1,5 @@
 use pyo3::prelude::*;
 use pyo3::types::PyList;
-use pest_derive::Parser;
 use pest::Parser;
 use std::collections::HashMap;
 use pest::iterators::Pairs;
@@ -26,22 +25,27 @@ fn lang_from_str(str_input: &str) -> Language {
     return Language::from_str(str_input).unwrap();
 }
 
-#[derive(Parser)]
-#[grammar = "JavaScript.pest"]
-pub struct JavaScriptParser;
+mod javascript {
+    use pest_derive::Parser;
+
+    #[derive(Parser)]
+    #[grammar = "JavaScript.pest"]
+    pub struct Parser;
+}
 
 #[pyclass(get_all)]
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 struct ParseMatch {
     match_type: String,
     match_value: String,
+    match_raw: String,
     char: MatchPos,
     line: MatchPos,
     matches: HashMap<String, String>
 }
 
 #[pyclass(get_all)]
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 struct MatchPos {
     start: usize,
     end: usize
@@ -52,24 +56,43 @@ fn parse_with_enum(py: Python<'_>, str_input: &str, lang: Language) -> PyResult<
 
     let mut tokens:Vec<PyObject> = Vec::new();
 
-    let pairs: Pairs<Rule> = match lang {
-        Language::JavaScript => JavaScriptParser::parse(Rule::PROGRAM, &str_input).unwrap_or_else(|e| panic!("{}", e)),
-        _=> JavaScriptParser::parse(Rule::PROGRAM, &str_input).unwrap_or_else(|e| panic!("{}", e))
+    let pairs: Pairs<javascript::Rule> = match lang {
+        Language::JavaScript => javascript::Parser::parse(javascript::Rule::PROGRAM, &str_input).unwrap_or_else(|e| panic!("{}", e)),
+        _=> javascript::Parser::parse(javascript::Rule::PROGRAM, &str_input).unwrap_or_else(|e| panic!("{}", e))
     };
 
     for pair in pairs {
         for inner_pair in pair.into_inner() {
 
-            let rule_str:&str;
-            match inner_pair.as_rule() {
-                Rule::COMMENT => rule_str ="comment",
-                Rule::STRING => rule_str = "string_literal",
+            println!("<{:?}> {}", inner_pair.as_rule(), inner_pair.as_str());
+            let rule_str:&str = match inner_pair.as_rule() {
+                javascript::Rule::COMMENT => "comment",
+                javascript::Rule::STRING => "string_literal",
                 _=> continue,
+            };
+
+            let mut match_contents:&str = "";
+            for nested_pair in inner_pair.clone().into_inner() {
+                println!("NESTED <{:?}> {}", nested_pair.as_rule(), nested_pair.as_str());
+                match nested_pair.as_rule() {
+                    javascript::Rule::sl_str_text |
+                    javascript::Rule::ml_str_text |
+                    javascript::Rule::sl_comment_str |
+                    javascript::Rule::ml_comment_str => {
+                        match_contents = nested_pair.as_str();
+                        break;
+                    },
+                    _ => {
+                        continue;
+                    },
+                }
+                // match_contents = nested_pair.as_str();
             }
 
-            let p_match = ParseMatch {
+            let mut p_match = ParseMatch {
                 match_type: rule_str.to_string(),
                 match_value: inner_pair.as_str().to_string(),
+                match_raw: match_contents.to_string(),
                 char: MatchPos {
                     start: inner_pair.as_span().start_pos().pos(),
                     end: inner_pair.as_span().end_pos().pos()
@@ -80,6 +103,9 @@ fn parse_with_enum(py: Python<'_>, str_input: &str, lang: Language) -> PyResult<
                 },
                 matches: do_regex(py,  inner_pair.as_str()).into()
             };
+
+
+            p_match.match_raw = match_contents.to_string();
 
             tokens.push( p_match.into_py(py));
         }
@@ -129,6 +155,7 @@ fn do_regex(_py: Python<'_>, str_input: &str) -> HashMap<String, String> {
 
     for (key, pattern) in re_patterns {
         for (cap, [_group1]) in pattern.captures_iter(str_input).map(|c| c.extract()) {
+            re_captures.insert(key.to_string(), cap.to_string());
             re_captures.insert(key.to_string(), cap.to_string());
         }
     }

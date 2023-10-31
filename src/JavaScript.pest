@@ -3,20 +3,21 @@ printable_str = _{ '!'..'~' }
 sl_printable_str = _{ ws | printable_str }
 ml_printable_str = _{ sl_printable_str | NEWLINE }
 
+sl_comment_str = {(sl_printable_str*)}
 sl_comment = _{
     "//"
     ~
-    sl_printable_str*
+    sl_comment_str
 }
-ml_comment_str = _{
+ml_comment_str = {(
     !"*/"
     ~
     ml_printable_str
-}
+)*}
 ml_comment = _{
     "/*"
     ~
-    ml_comment_str*
+    ml_comment_str
     ~
     "*/"
 }
@@ -36,10 +37,11 @@ sl_str_literal_string_safe = _{
     	sl_str_literal_enclosure ) |
     sl_str_literal_string
 }
+sl_str_text = {(sl_str_literal_string_safe*)}
 sl_str_literal = _{
     PUSH(sl_str_literal_enclosure)
     ~
-    sl_str_literal_string_safe*
+    sl_str_text
     ~
     POP
 }
@@ -58,10 +60,11 @@ ml_str_literal_string_safe = _{
     	ml_str_literal_enclosure ) |
     ml_str_literal_string
 }
+ml_str_text = {(ml_str_literal_string_safe*)}
 ml_str_literal = _{
     PUSH(ml_str_literal_enclosure)
     ~
-    ml_str_literal_string_safe*
+    ml_str_text
     ~
     POP
 }
