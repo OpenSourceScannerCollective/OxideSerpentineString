@@ -41,3 +41,7 @@ var myvar = `this is a multi-
 -line string
 using back-ticks`
 
+var secret = "-----BEGIN RSA PRIVATE KEY-----"
+var secret = "-----BEGIN DSA PRIVATE KEY-----"
+var secret = "-----BEGIN EC PRIVATE KEY-----"
+var secret = "-----BEGIN PGP PRIVATE KEY BLOCK-----"

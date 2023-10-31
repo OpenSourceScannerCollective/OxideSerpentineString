@@ -36,9 +36,9 @@ mod javascript {
 #[pyclass(get_all)]
 #[derive(Clone)]
 struct ParseMatch {
-    match_type: String,
-    match_value: String,
-    match_raw: String,
+    kind: String,
+    value: String,
+    raw: String,
     char: MatchPos,
     line: MatchPos,
     matches: HashMap<String, String>
@@ -64,16 +64,17 @@ fn parse_with_enum(py: Python<'_>, str_input: &str, lang: Language) -> PyResult<
     for pair in pairs {
         for inner_pair in pair.into_inner() {
 
-            println!("<{:?}> {}", inner_pair.as_rule(), inner_pair.as_str());
+            // println!("<{:?}> {}", inner_pair.as_rule(), inner_pair.as_str());
+
             let rule_str:&str = match inner_pair.as_rule() {
                 javascript::Rule::COMMENT => "comment",
-                javascript::Rule::STRING => "string_literal",
+                javascript::Rule::STRING => "string",
                 _=> continue,
             };
 
             let mut match_contents:&str = "";
             for nested_pair in inner_pair.clone().into_inner() {
-                println!("NESTED <{:?}> {}", nested_pair.as_rule(), nested_pair.as_str());
+                // println!("NESTED <{:?}> {}", nested_pair.as_rule(), nested_pair.as_str());
                 match nested_pair.as_rule() {
                     javascript::Rule::sl_str_text |
                     javascript::Rule::ml_str_text |
@@ -86,13 +87,12 @@ fn parse_with_enum(py: Python<'_>, str_input: &str, lang: Language) -> PyResult<
                         continue;
                     },
                 }
-                // match_contents = nested_pair.as_str();
             }
 
-            let mut p_match = ParseMatch {
-                match_type: rule_str.to_string(),
-                match_value: inner_pair.as_str().to_string(),
-                match_raw: match_contents.to_string(),
+            let p_match = ParseMatch {
+                kind: rule_str.to_string(),
+                value: inner_pair.as_str().to_string(),
+                raw: match_contents.to_string(),
                 char: MatchPos {
                     start: inner_pair.as_span().start_pos().pos(),
                     end: inner_pair.as_span().end_pos().pos()
@@ -103,9 +103,6 @@ fn parse_with_enum(py: Python<'_>, str_input: &str, lang: Language) -> PyResult<
                 },
                 matches: do_regex(py,  inner_pair.as_str()).into()
             };
-
-
-            p_match.match_raw = match_contents.to_string();
 
             tokens.push( p_match.into_py(py));
         }
@@ -138,7 +135,7 @@ fn get_patterns() -> HashMap<&'static str, &'static Lazy<Regex>> {
     let re_patterns:HashMap<&'static str, &'static Lazy<Regex>> = HashMap::from([
         ("RSA private key", &RSA_PRIVATE_KEY),
         ("SSH (DSA) private key", &SSH_DSA_PRIVATE_KEY),
-        ("SSH (EC) private key", &PGP_PRIVATE_KEY),
+        ("SSH (EC) private key", &EC_PRIVATE_KEY),
         ("PGP private key block", &PGP_PRIVATE_KEY),
         ("Google API Key", &GOOGLE_API_KEY),
         ("Google OAuth Access Token", &GOOGLE_OAUTH_TOKEN),
