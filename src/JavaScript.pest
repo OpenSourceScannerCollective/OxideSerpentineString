@@ -1,0 +1,75 @@
+ws = _{ " " | "\t" }
+printable_str = _{ '!'..'~' }
+sl_printable_str = _{ ws | printable_str }
+ml_printable_str = _{ sl_printable_str | NEWLINE }
+
+sl_comment = _{
+    "//"
+    ~
+    sl_printable_str*
+}
+ml_comment_str = _{
+    !"*/"
+    ~
+    ml_printable_str
+}
+ml_comment = _{
+    "/*"
+    ~
+    ml_comment_str*
+    ~
+    "*/"
+}
+COMMENT = { sl_comment | ml_comment }
+
+sl_str_literal_enclosure = _{ "'" | "\"" }
+sl_str_literal_enclosure_escaped = _{ "\\\'" | "\\\"" }
+sl_str_literal_string = _{
+    !sl_str_literal_enclosure
+    ~
+    sl_printable_str
+}
+sl_str_literal_string_safe = _{
+	sl_str_literal_enclosure_escaped |
+    (	&!PEEK
+    	~
+    	sl_str_literal_enclosure ) |
+    sl_str_literal_string
+}
+sl_str_literal = _{
+    PUSH(sl_str_literal_enclosure)
+    ~
+    sl_str_literal_string_safe*
+    ~
+    POP
+}
+
+ml_str_literal_enclosure = _{ "`" }
+ml_str_literal_enclosure_escaped = _{ "\\`" }
+ml_str_literal_string = _{
+    !ml_str_literal_enclosure
+    ~
+    ml_printable_str
+}
+ml_str_literal_string_safe = _{
+	ml_str_literal_enclosure_escaped |
+    (	&!PEEK
+    	~
+    	ml_str_literal_enclosure ) |
+    ml_str_literal_string
+}
+ml_str_literal = _{
+    PUSH(ml_str_literal_enclosure)
+    ~
+    ml_str_literal_string_safe*
+    ~
+    POP
+}
+
+STRING = { sl_str_literal | ml_str_literal }
+
+PROGRAM = {(
+    STRING |
+    COMMENT |
+    ANY
+)*}

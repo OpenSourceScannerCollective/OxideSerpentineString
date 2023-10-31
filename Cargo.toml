@@ -1,0 +1,18 @@
+[package]
+name = "string_extract"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+name = "string_extract"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = "0.20.0"
+pest = { version = "2.7.5", default-features = true }
+pest_derive = { version = "2.7.5", default-features = true }
+regex = { version = "1.3", default-features = true, features = ["std"] }
+once_cell = { version = "1.18.0", features = [] }
+strum = "0.25"
+strum_macros = { version = "0.25", features = [] }

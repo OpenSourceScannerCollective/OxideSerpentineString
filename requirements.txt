@@ -1,0 +1,3 @@
+maturin==1.3.1
+string_extract @ file:///var/folders/b8/tc19kr7s6410tp9x17k4fmjh0000gn/T/.tmp52LIWR/string_extract-0.1.0-cp39-cp39-macosx_11_0_arm64.whl#sha256=f2d86d0a7e424ebe2e0d47d0b64d739e856642e862e94ed9c885692af3e9d46e
+tomli==2.0.1
