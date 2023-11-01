@@ -1,5 +1,5 @@
 use pyo3::prelude::*;
-use pyo3::types::PyList;
+use pyo3::types::{IntoPyDict, PyList};
 use pest::Parser;
 use std::collections::HashMap;
 use pest::iterators::Pairs;
@@ -70,7 +70,7 @@ fn parse_with_enum(py: Python<'_>, str_input: &str, lang: Language) -> PyResult<
                 _=> continue,
             };
 
-            let mut match_contents:&str = "";
+            let mut match_contents:&str = inner_pair.as_str();
             for nested_pair in inner_pair.clone().into_inner() {
                 match nested_pair.as_rule() {
                     javascript::Rule::sl_str_text |
@@ -98,7 +98,7 @@ fn parse_with_enum(py: Python<'_>, str_input: &str, lang: Language) -> PyResult<
                     start: inner_pair.as_span().start_pos().line_col().0,
                     end: inner_pair.as_span().end_pos().line_col().0
                 },
-                matches: do_regex(py,  inner_pair.as_str()).into()
+                matches: do_regex(inner_pair.as_str()).into()
             };
 
             tokens.push( p_match.into_py(py));
@@ -146,7 +146,8 @@ fn get_patterns() -> HashMap<&'static str, &'static Lazy<Regex>> {
     return re_patterns;
 }
 
-fn do_regex(_py: Python<'_>, str_input: &str) -> HashMap<String, String> {
+// TODO: move to a vector of hashmaps to allow for multiple instances of the same key
+fn do_regex(str_input: &str) -> HashMap<String, String> {
 
     let re_patterns: HashMap<&'static str, &'static Lazy<Regex>> = get_patterns();
     let mut re_captures:HashMap<String, String> = HashMap::new();
@@ -161,6 +162,12 @@ fn do_regex(_py: Python<'_>, str_input: &str) -> HashMap<String, String> {
     return re_captures.into();
 }
 
+#[pyfunction]
+#[pyo3(name = "do_regex")]
+fn py_do_regex(py: Python<'_>, str_input: &str) -> PyResult<PyObject> {
+    Ok(do_regex(str_input).into_py_dict(py).to_object(py))
+}
+
 /// A Python module implemented in Rust.
 #[pymodule]
 fn string_extract(_py: Python, m: &PyModule) -> PyResult<()> {
@@ -169,5 +176,6 @@ fn string_extract(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<Language>()?;
     m.add_function(wrap_pyfunction!(parse_with_enum, m)?)?;
     m.add_function(wrap_pyfunction!(parse, m)?)?;
+    m.add_function(wrap_pyfunction!(py_do_regex, m)?)?;
     Ok(())
 }
