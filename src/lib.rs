@@ -64,8 +64,6 @@ fn parse_with_enum(py: Python<'_>, str_input: &str, lang: Language) -> PyResult<
     for pair in pairs {
         for inner_pair in pair.into_inner() {
 
-            // println!("<{:?}> {}", inner_pair.as_rule(), inner_pair.as_str());
-
             let rule_str:&str = match inner_pair.as_rule() {
                 javascript::Rule::COMMENTS => "comment",
                 javascript::Rule::STRING => "string",
@@ -74,7 +72,6 @@ fn parse_with_enum(py: Python<'_>, str_input: &str, lang: Language) -> PyResult<
 
             let mut match_contents:&str = "";
             for nested_pair in inner_pair.clone().into_inner() {
-                // println!("NESTED <{:?}> {}", nested_pair.as_rule(), nested_pair.as_str());
                 match nested_pair.as_rule() {
                     javascript::Rule::sl_str_text |
                     javascript::Rule::ml_str_text |
@@ -123,6 +120,10 @@ fn parse(py: Python<'_>, str_input: &str, str_lang: &str) -> PyResult<PyObject> 
 
 #[allow(dead_code)]
 fn get_patterns() -> HashMap<&'static str, &'static Lazy<Regex>> {
+
+    /*
+        Lazy load compiled regular expressions
+     */
 
     static RSA_PRIVATE_KEY: Lazy<Regex> = Lazy::new(|| Regex::new(r"(-----BEGIN RSA PRIVATE KEY-----)").unwrap());
     static SSH_DSA_PRIVATE_KEY: Lazy<Regex> = Lazy::new(|| Regex::new(r"(-----BEGIN DSA PRIVATE KEY-----)").unwrap());
