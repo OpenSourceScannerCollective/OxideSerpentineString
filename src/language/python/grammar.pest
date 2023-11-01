@@ -3,7 +3,7 @@ printable_str = _{ '!'..'~' }
 sl_printable_str = _{ ws | printable_str }
 ml_printable_str = _{ sl_printable_str | NEWLINE }
 
-sl_comment_literal_enclosure = _{ "//" }
+sl_comment_literal_enclosure = _{ "#" }
 sl_comment_literal_string = _{
     !sl_comment_literal_enclosure
     ~
@@ -16,27 +16,9 @@ sl_comment_literal = _{
     sl_comment_text
 }
 
-ml_comment_literal_enclosure_open = _{ "/*" }
-ml_comment_literal_enclosure_close = _{ "*/" }
-ml_comment_literal_string = _{
-    !ml_comment_literal_enclosure_open
-    ~
-    !ml_comment_literal_enclosure_close
-    ~
-    ml_printable_str
-}
-ml_comment_text = {(ml_comment_literal_string*)}
-ml_comment_literal = _{
-    ml_comment_literal_enclosure_open
-    ~
-    ml_comment_text
-    ~
-    ml_comment_literal_enclosure_close
-}
-
 // Note: There appears to be a bug in PEST where if this
 // is called "COMMENT" then nesting is disabled
-COMMENTS = { sl_comment_literal | ml_comment_literal }
+COMMENTS = { sl_comment_literal }
 
 
 sl_str_literal_enclosure = _{ "'" | "\"" }
@@ -62,15 +44,13 @@ sl_str_literal = _{
     POP
 }
 
-ml_str_literal_enclosure = _{ "`" }
-ml_str_literal_enclosure_escaped = _{ "\\`" }
+ml_str_literal_enclosure = _{ "'''" | "\"\"\"" }
 ml_str_literal_string = _{
     !ml_str_literal_enclosure
     ~
     ml_printable_str
 }
 ml_str_literal_string_safe = _{
-    ml_str_literal_enclosure_escaped |
     (   &!PEEK
         ~
         ml_str_literal_enclosure ) |
@@ -85,7 +65,7 @@ ml_str_literal = _{
     POP
 }
 
-STRING = { sl_str_literal | ml_str_literal }
+STRING = {  ml_str_literal | sl_str_literal }
 
 PROGRAM = {(
     STRING |
