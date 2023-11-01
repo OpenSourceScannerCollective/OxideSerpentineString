@@ -67,7 +67,7 @@ fn parse_with_enum(py: Python<'_>, str_input: &str, lang: Language) -> PyResult<
             // println!("<{:?}> {}", inner_pair.as_rule(), inner_pair.as_str());
 
             let rule_str:&str = match inner_pair.as_rule() {
-                javascript::Rule::COMMENT => "comment",
+                javascript::Rule::COMMENTS => "comment",
                 javascript::Rule::STRING => "string",
                 _=> continue,
             };
@@ -78,8 +78,8 @@ fn parse_with_enum(py: Python<'_>, str_input: &str, lang: Language) -> PyResult<
                 match nested_pair.as_rule() {
                     javascript::Rule::sl_str_text |
                     javascript::Rule::ml_str_text |
-                    javascript::Rule::sl_comment_str |
-                    javascript::Rule::ml_comment_str => {
+                    javascript::Rule::sl_comment_text |
+                    javascript::Rule::ml_comment_text => {
                         match_contents = nested_pair.as_str();
                         break;
                     },
@@ -91,8 +91,8 @@ fn parse_with_enum(py: Python<'_>, str_input: &str, lang: Language) -> PyResult<
 
             let p_match = ParseMatch {
                 kind: rule_str.to_string(),
-                value: inner_pair.as_str().to_string(),
-                raw: match_contents.to_string(),
+                value: match_contents.to_string(),
+                raw: inner_pair.as_str().to_string(),
                 char: MatchPos {
                     start: inner_pair.as_span().start_pos().pos(),
                     end: inner_pair.as_span().end_pos().pos()

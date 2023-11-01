@@ -7,6 +7,6 @@ with open("./test/test.js") as f:
 results = string_extract.parse(data, "JavaScript")
 
 for res in results:
-    print("kind:", res.kind, "matches:", len(res.matches) , "value:" , res.value)
+    print("kind:", res.kind, "\n\tmatches:", len(res.matches) , "\n\tvalue:" , res.value, "\n\traw:", res.raw)
     for key, value in res.matches.items():
-        print("\t>", key, "=>", value)
+        print("\t\t> (", key, ") =>", value)
