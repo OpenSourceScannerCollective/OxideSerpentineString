@@ -3,9 +3,6 @@ from termcolor import colored, cprint
 
 
 def test_parser(lang):
-    print(colored(" # TEST PARSER: ", "white", "on_red") +
-          colored(lang.upper(), "blue", "on_red") +
-          colored(" # ", "white", "on_red"))
 
     if lang.lower() == "javascript":
         filepath = "./test/language/javascript/test.js"
@@ -16,7 +13,12 @@ def test_parser(lang):
     elif lang.lower() == "toml":
         filepath = "./test/language/toml/test.toml"
     else:
+        print(colored("Invalid parser language: <" + lang + ">", "red", "on_black"))
         return
+
+    print(colored(" # TEST PARSER: ", "white", "on_red") +
+          colored(lang.upper(), "blue", "on_red") +
+          colored(" # ", "white", "on_red"))
 
     with open(filepath) as f:
         data = f.read()
