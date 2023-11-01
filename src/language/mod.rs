@@ -5,8 +5,10 @@ pub(crate) mod toml;
 
 use std::collections::HashMap;
 use std::str::FromStr;
+use pest::Span;
 use pyo3::{pyclass, pyfunction, PyResult, Python, PyObject, IntoPy};
 use strum_macros::EnumString;
+use crate::patterns::do_regex;
 
 #[pyclass(get_all)]
 #[derive(Clone, Copy, EnumString)]
@@ -33,6 +35,27 @@ pub struct ParseMatch {
     char: MatchPos,
     line: MatchPos,
     matches: HashMap<String, String>
+}
+
+impl ParseMatch {
+    fn from(rule_str: &str, value_str: &str, raw_str: &str, inner_span: Span) -> ParseMatch {
+        let p_match = ParseMatch {
+            kind: rule_str.to_string(),
+            value: value_str.to_string(),
+            raw: raw_str.to_string(),
+            char: MatchPos {
+                start: inner_span.start_pos().pos(),
+                end: inner_span.end_pos().pos()
+            },
+            line: MatchPos {
+                start: inner_span.start_pos().line_col().0,
+                end: inner_span.end_pos().line_col().0
+            },
+            matches: do_regex(raw_str).into()
+        };
+
+        return p_match;
+    }
 }
 
 #[pyclass(get_all)]

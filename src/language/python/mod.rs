@@ -1,8 +1,7 @@
 use pest::iterators::Pairs;
 use pest::Parser;
 use pest_derive::Parser;
-use crate::language::{MatchPos, ParseMatch};
-use crate::patterns::do_regex;
+use crate::language::{ParseMatch};
 
 #[derive(Parser)]
 #[grammar = "./language/python/grammar.pest"]
@@ -37,22 +36,8 @@ pub fn parse(str_input: &str) -> Vec<ParseMatch>  {
                 }
             }
 
-            let p_match = ParseMatch {
-                kind: rule_str.to_string(),
-                value: match_contents.to_string(),
-                raw: inner_pair.as_str().to_string(),
-                char: MatchPos {
-                    start: inner_pair.as_span().start_pos().pos(),
-                    end: inner_pair.as_span().end_pos().pos()
-                },
-                line: MatchPos {
-                    start: inner_pair.as_span().start_pos().line_col().0,
-                    end: inner_pair.as_span().end_pos().line_col().0
-                },
-                matches: do_regex(inner_pair.as_str()).into()
-            };
-
-            tokens.push( p_match);
+            let parse_match = ParseMatch::from(rule_str,match_contents,inner_pair.as_str(), inner_pair.as_span());
+            tokens.push( parse_match);
         }
     }
 
