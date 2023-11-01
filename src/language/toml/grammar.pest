@@ -3,15 +3,9 @@ printable_str = _{ '!'..'~' }
 sl_printable_str = _{ ws | printable_str }
 ml_printable_str = _{ sl_printable_str | NEWLINE }
 
-sl_comment_literal_enclosure = _{ "#" }
-sl_comment_literal_string = _{
-    !sl_comment_literal_enclosure
-    ~
-    sl_printable_str
-}
-sl_comment_text = {(sl_comment_literal_string*)}
+sl_comment_text = {(sl_printable_str*)}
 sl_comment_literal = _{
-    PUSH(sl_comment_literal_enclosure)
+    "#"
     ~
     sl_comment_text
 }

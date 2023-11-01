@@ -16,6 +16,7 @@ pub fn parse(str_input: &str) -> Vec<ParseMatch>  {
         for inner_pair in pair.into_inner() {
 
             let rule_str:&str = match inner_pair.as_rule() {
+                Rule::COMMENTS => "comment",
                 Rule::STRING => "string",
                 _=> continue,
             };
@@ -23,6 +24,7 @@ pub fn parse(str_input: &str) -> Vec<ParseMatch>  {
             let mut match_contents:&str = inner_pair.as_str();
             for nested_pair in inner_pair.clone().into_inner() {
                 match nested_pair.as_rule() {
+                    Rule::sl_comment_text |
                     Rule::sl_str_text => {
                         match_contents = nested_pair.as_str();
                         break;

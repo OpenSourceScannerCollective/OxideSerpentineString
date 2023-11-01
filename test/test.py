@@ -30,7 +30,7 @@ def test_parser(lang):
         if res.kind == "string":
             print(colored("<" + res.kind + ">", "cyan"))
         else:
-            print(colored("< " + res.kind + " >", "magenta"))
+            print(colored("<" + res.kind + ">", "magenta"))
         print(colored("\tvalue:", "dark_grey"), colored(res.value, "blue"))
         print(colored("\traw:", "dark_grey"), colored(res.raw, "red"))
         print(colored("\tloc:", "dark_grey"), colored(res.line.start, "light_grey"))
