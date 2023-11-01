@@ -1,0 +1,10 @@
+{
+  "member1": "string value 1",
+  "member2": "string value 2",
+  "member3": "string value 3",
+  "member4": 123,
+  "object": {
+    "object->member1": "string value 4",
+    "object->member2": 456
+  }
+}

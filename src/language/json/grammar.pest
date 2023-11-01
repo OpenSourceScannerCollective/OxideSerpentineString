@@ -1,0 +1,34 @@
+WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
+printable_str = _{ '!'..'~' }
+sl_printable_str = _{ WHITESPACE | printable_str }
+ml_printable_str = _{ sl_printable_str | NEWLINE }
+
+sl_str_literal_enclosure = _{ "'" | "\"" }
+sl_str_literal_enclosure_escaped = _{ "\\\'" | "\\\"" }
+sl_str_literal_string = _{
+    !sl_str_literal_enclosure
+    ~
+    sl_printable_str
+}
+sl_str_literal_string_safe = _{
+    sl_str_literal_enclosure_escaped |
+    (   &!PEEK
+        ~
+        sl_str_literal_enclosure ) |
+    sl_str_literal_string
+}
+sl_str_text = {(sl_str_literal_string_safe*)}
+sl_str_literal = _{
+    PUSH(sl_str_literal_enclosure)
+    ~
+    sl_str_text
+    ~
+    POP
+}
+
+STRING = { sl_str_literal }
+
+PROGRAM = {(
+    STRING |
+    ANY
+)*}

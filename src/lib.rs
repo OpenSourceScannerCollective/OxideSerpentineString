@@ -11,6 +11,8 @@ fn parse_with_enum(py: Python<'_>, str_input: &str, lang: language::ProgrammingL
     let tokens = match lang {
         ProgrammingLanguage::JavaScript => language::javascript::parse(str_input),
         ProgrammingLanguage::Python => language::python::parse(str_input),
+        ProgrammingLanguage::Json => language::json::parse(str_input),
+        ProgrammingLanguage::Toml => language::toml::parse(str_input),
     };
 
     Ok(tokens.into_py(py))

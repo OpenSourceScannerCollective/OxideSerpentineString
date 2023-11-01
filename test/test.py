@@ -3,15 +3,20 @@ from termcolor import colored, cprint
 
 
 def test_parser(lang):
-
-    print(  colored(" # TEST PARSER: ", "white", "on_red") +
-            colored(lang.upper(), "blue", "on_red") +
-            colored(" #", "white", "on_red"))
+    print(colored(" # TEST PARSER: ", "white", "on_red") +
+          colored(lang.upper(), "blue", "on_red") +
+          colored(" #", "white", "on_red"))
 
     if lang.lower() == "javascript":
         filepath = "./test/language/javascript/test.js"
     elif lang.lower() == "python":
         filepath = "./test/language/python/test.py"
+    elif lang.lower() == "json":
+        filepath = "./test/language/json/test.json"
+    elif lang.lower() == "toml":
+        filepath = "./test/language/toml/test.toml"
+    else:
+        return
 
     with open(filepath) as f:
         data = f.read()
@@ -32,8 +37,9 @@ def test_parser(lang):
 
 
 def print_matches(matches):
-    print(colored("\tmatches (", "dark_grey") + colored(str(len(matches)), "light_grey") + colored(")" + (":" if len(matches) > 0 else ""),
-                                                                                                                              "dark_grey"))
+    print(colored("\tmatches (", "dark_grey") + colored(str(len(matches)), "light_grey") + colored(
+        ")" + (":" if len(matches) > 0 else ""),
+        "dark_grey"))
     for key, value in matches.items():
         print(colored("\t\t[" + key + "]", "green") + colored(" => ", "dark_grey") + colored("{" + value + "}",
                                                                                              "yellow"))
@@ -50,7 +56,18 @@ def test_regex():
     print_matches(matches)
 
 
+def lang_tests():
+    test_langs = [
+        "JavaScript",
+        "Python",
+        "Json",
+        "Toml"
+    ]
+
+    for lang in test_langs:
+        test_parser(lang)
+
+
 # begin
-test_parser("JavaScript")
-test_parser("Python")
 test_regex()
+lang_tests()

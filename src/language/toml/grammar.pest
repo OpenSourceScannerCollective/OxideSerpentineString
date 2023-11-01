@@ -1,0 +1,53 @@
+ws = _{ " " | "\t" }
+printable_str = _{ '!'..'~' }
+sl_printable_str = _{ ws | printable_str }
+ml_printable_str = _{ sl_printable_str | NEWLINE }
+
+sl_comment_literal_enclosure = _{ "#" }
+sl_comment_literal_string = _{
+    !sl_comment_literal_enclosure
+    ~
+    sl_printable_str
+}
+sl_comment_text = {(sl_comment_literal_string*)}
+sl_comment_literal = _{
+    PUSH(sl_comment_literal_enclosure)
+    ~
+    sl_comment_text
+}
+
+// Note: There appears to be a bug in PEST where if this
+// is called "COMMENT" then nesting is disabled
+COMMENTS = { sl_comment_literal }
+
+sl_str_literal_enclosure = _{ "'" | "\"" }
+sl_str_literal_enclosure_escaped = _{ "\\\'" | "\\\"" }
+sl_str_literal_string = _{
+    !sl_str_literal_enclosure
+    ~
+    sl_printable_str
+}
+sl_str_literal_string_safe = _{
+    sl_str_literal_enclosure_escaped |
+    (   &!PEEK
+        ~
+        sl_str_literal_enclosure ) |
+    sl_str_literal_string
+}
+sl_str_text = {(sl_str_literal_string_safe*)}
+sl_str_literal = _{
+    PUSH(sl_str_literal_enclosure)
+    ~
+    sl_str_text
+    ~
+    POP
+}
+
+
+STRING = { sl_str_literal }
+
+PROGRAM = {(
+    STRING |
+    COMMENTS |
+    ANY
+)*}

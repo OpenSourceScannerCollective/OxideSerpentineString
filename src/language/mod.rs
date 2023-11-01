@@ -1,5 +1,7 @@
 pub(crate) mod javascript;
 pub(crate) mod python;
+pub(crate) mod json;
+pub(crate) mod toml;
 
 use std::collections::HashMap;
 use std::str::FromStr;
@@ -11,8 +13,21 @@ use strum_macros::EnumString;
 #[strum(ascii_case_insensitive)]
 pub enum ProgrammingLanguage {
     Python,
-    JavaScript
+    JavaScript,
+    Json,
+    Toml,
 }
+
+// fn get_parser_for_lang(lang: ProgrammingLanguage) -> Parser {
+//
+//     let lang_parser = match lang {
+//         ProgrammingLanguage::JavaScript => javascript::JavaScriptParser,
+//         ProgrammingLanguage::Python => python::PythonParser,
+//         ProgrammingLanguage::Json => json::JsonParser,
+//     };
+//
+//     Ok(lang_parser)
+// }
 
 #[pyfunction]
 #[allow(dead_code)]
@@ -30,23 +45,6 @@ pub struct ParseMatch {
     line: MatchPos,
     matches: HashMap<String, String>
 }
-
-// impl ToPyObject for ParseMatch {
-//     fn to_object(&self, py: pyo3::Python) -> pyo3::PyObject {
-//         // let mdf = self.mdf();
-//         // let date = PyDate::new(py, self.year(), mdf.month() as u8, mdf.day() as u8)
-//         //     .expect("Failed to construct date");
-//         // date.into()
-//
-//     }
-// }
-
-// impl IntoPy<pyo3::PyObject> for ParseMatch {
-//     fn into_py(self, py: Python<'_>) -> PyObject {
-//         ToPyObject::to_object(&self, py)
-//     }
-// }
-
 
 #[pyclass(get_all)]
 #[derive(Clone)]
