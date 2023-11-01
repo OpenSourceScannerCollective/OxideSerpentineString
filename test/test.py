@@ -2,14 +2,21 @@ import string_extract
 from termcolor import colored, cprint
 
 
-def test_parser():
+def test_parser(lang):
 
-    print(colored("# TEST PARSER #", "red", "on_cyan"))
+    print(  colored(" # TEST PARSER: ", "white", "on_red") +
+            colored(lang.upper(), "blue", "on_red") +
+            colored(" #", "white", "on_red"))
 
-    with open("./test/test.js") as f:
+    if lang.lower() == "javascript":
+        filepath = "./test/language/javascript/test.js"
+    elif lang.lower() == "python":
+        filepath = "./test/language/python/test.py"
+
+    with open(filepath) as f:
         data = f.read()
 
-    results = string_extract.parse(data, "JavaScript")
+    results = string_extract.parse(data, lang)
 
     for res in results:
         print(colored("kind: ", "dark_grey"), end="")
@@ -33,7 +40,7 @@ def print_matches(matches):
 
 
 def test_regex():
-    print(colored("# TEST REGEX #", "red", "on_cyan"))
+    print(colored(" # TEST REGEX # ", "white", "on_red"))
     test_str = """
         // comment with key -----BEGIN RSA PRIVATE KEY-----
         
@@ -44,5 +51,6 @@ def test_regex():
 
 
 # begin
-test_parser()
+test_parser("JavaScript")
+test_parser("Python")
 test_regex()
