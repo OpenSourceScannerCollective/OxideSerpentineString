@@ -5,7 +5,7 @@ from termcolor import colored, cprint
 def test_parser(lang):
     print(colored(" # TEST PARSER: ", "white", "on_red") +
           colored(lang.upper(), "blue", "on_red") +
-          colored(" #", "white", "on_red"))
+          colored(" # ", "white", "on_red"))
 
     if lang.lower() == "javascript":
         filepath = "./test/language/javascript/test.js"
