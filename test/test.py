@@ -26,9 +26,9 @@ def test_parser(lang):
     results = string_extract.parse(data, lang)
 
     for res in results:
-        print(colored("kind: ", "dark_grey"), end="")
+        print(colored("kind: ", "yellow"), end="")
         if res.kind == "string":
-            print(colored("< " + res.kind + " >", "cyan"))
+            print(colored("<" + res.kind + ">", "cyan"))
         else:
             print(colored("< " + res.kind + " >", "magenta"))
         print(colored("\tvalue:", "dark_grey"), colored(res.value, "blue"))
@@ -44,7 +44,7 @@ def print_matches(matches):
         "dark_grey"))
     for key, value in matches.items():
         print(colored("\t\t[" + key + "]", "green") + colored(" => ", "dark_grey") + colored("{" + value + "}",
-                                                                                             "yellow"))
+                                                                                             "light_green"))
 
 
 def test_regex():
