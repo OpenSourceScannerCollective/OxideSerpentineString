@@ -38,17 +38,23 @@ pub fn get_patterns() -> HashMap<&'static str, &'static Lazy<Regex>> {
     return re_patterns;
 }
 
-// TODO:    1. move to a vector of hashmaps to allow for multiple instances of the same key
+// TODO:    1. m̶o̶v̶e̶ ̶t̶o̶ ̶a̶ ̶v̶e̶c̶t̶o̶r̶ ̶o̶f̶ ̶h̶a̶s̶h̶m̶a̶p̶s̶ ̶t̶o̶ ̶a̶l̶l̶o̶w̶ ̶f̶o̶r̶ ̶m̶u̶l̶t̶i̶p̶l̶e̶ ̶i̶n̶s̶t̶a̶n̶c̶e̶s̶ ̶o̶f̶ ̶t̶h̶e̶ ̶s̶a̶m̶e̶ ̶k̶e̶y̶
 //          2. provide meta-data for the match including positional information
-pub fn do_regex(str_input: &str) -> HashMap<String, String> {
+pub fn do_regex(str_input: &str) -> HashMap<String, Vec<String>> {
 
     let re_patterns: HashMap<&'static str, &'static Lazy<Regex>> = get_patterns();
-    let mut re_captures:HashMap<String, String> = HashMap::new();
+    let mut re_captures:HashMap<String, Vec<String>> = HashMap::new();
 
     for (key, pattern) in re_patterns {
         for (cap, [_group1]) in pattern.captures_iter(str_input).map(|c| c.extract()) {
-            re_captures.insert(key.to_string(), cap.to_string());
-            re_captures.insert(key.to_string(), cap.to_string());
+
+            if !re_captures.contains_key(key) {
+                let vec = Vec::from([cap.to_string()]);
+                re_captures.insert(key.to_string(), vec);
+                continue;
+            }
+
+            re_captures.entry(key.to_string()).or_insert(Vec::new()).push(cap.to_string());
         }
     }
 

@@ -34,7 +34,7 @@ pub struct ParseMatch {
     raw: String,
     char: MatchPos,
     line: MatchPos,
-    matches: HashMap<String, String>
+    matches: HashMap<String, Vec<String>>
 }
 
 impl ParseMatch {

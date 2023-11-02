@@ -16,12 +16,12 @@ def test_parser(lang):
         print(colored("Invalid parser language: <" + lang + ">", "red", "on_black"))
         return
 
+    with open(filepath) as f:
+        data = f.read()
+
     print(colored(" # TEST PARSER: ", "white", "on_red") +
           colored(lang.upper(), "blue", "on_red") +
           colored(" # ", "white", "on_red"))
-
-    with open(filepath) as f:
-        data = f.read()
 
     results = string_extract.parse(data, lang)
 
@@ -43,19 +43,28 @@ def print_matches(matches):
         ")" + (":" if len(matches) > 0 else ""),
         "dark_grey"))
     for key, value in matches.items():
-        print(colored("\t\t[" + key + "]", "green") + colored(" => ", "dark_grey") + colored("{" + value + "}",
-                                                                                             "light_green"))
+        print(colored("\t\t[" + key + "]", "green") + colored(" => ", "dark_grey"), value)
 
 
-def test_regex():
-    print(colored(" # TEST REGEX # ", "white", "on_red"))
-    test_str = """
-        // comment with key -----BEGIN RSA PRIVATE KEY-----
-        
-        var mystr = "variable with key -----BEGIN EC PRIVATE KEY----- "
-    """
-    matches = string_extract.do_regex(test_str);
-    print_matches(matches)
+def test_regex(lang):
+
+    if lang.lower() == "javascript":
+        filepath = "./test/patterns/javascript/test.js"
+    else:
+        print(colored("Invalid parser language: <" + lang + ">", "red", "on_black"))
+        return
+
+    with open(filepath) as f:
+        data = f.read()
+
+    print(colored(" # TEST REGEX: ", "white", "on_red") +
+          colored(lang.upper(), "blue", "on_red") +
+          colored(" # ", "white", "on_red"))
+
+    with open(filepath) as f:
+        data = f.read()
+
+    print_matches(string_extract.do_regex(data))
 
 
 def lang_tests():
@@ -68,8 +77,8 @@ def lang_tests():
 
     for lang in test_langs:
         test_parser(lang)
+        test_regex(lang)
 
 
 # begin
-test_regex()
 lang_tests()
