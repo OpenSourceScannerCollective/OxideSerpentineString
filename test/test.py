@@ -34,7 +34,9 @@ def test_parser(lang, verbose):
                 print(colored("<" + res.kind + ">", "cyan"))
             else:
                 print(colored("<" + res.kind + ">", "magenta"))
-            print(colored("\tvalue:", "dark_grey"), colored(res.value, "blue"))
+
+            res_value = res.value if len(res.value) < 100 else res.value[:97] + "..."
+            print(colored("\tvalue:", "dark_grey"), colored(res_value, "blue"))
             print(colored("\traw:", "dark_grey"), colored(res.raw, "red"))
             print(colored("\tsource_pos =>", "dark_grey"))
             print(colored("\t\t  char.start: ", "dark_grey") + colored(res.position.char.start, "light_grey"))
