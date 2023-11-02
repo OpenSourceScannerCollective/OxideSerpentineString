@@ -1,0 +1,19 @@
+[
+  { "kind": "string",
+    "value": "string",
+    "raw": "\"string\"",
+    "loc": 2,
+    "matches": null },
+
+  { "kind": "string",
+    "value": "string with an inline comment no. 1",
+    "raw": "\"string with an inline comment no. 1\"",
+    "loc": 6,
+    "matches": null },
+
+  { "kind": "comment",
+    "value": "inline comment for string no. 1",
+    "raw": "\"inline comment for string no. 1\"",
+    "loc": 6,
+    "matches": null }
+]

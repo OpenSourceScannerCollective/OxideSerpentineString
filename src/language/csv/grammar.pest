@@ -1,0 +1,5 @@
+// source: https://pest.rs/book/examples/csv.html
+
+FIELD = { (ASCII_DIGIT | "." | "-")+ }
+RECORD = { FIELD ~ ("," ~ FIELD)* }
+PROGRAM = { SOI ~ (RECORD ~ ("\r\n" | "\n"))* ~ EOI }

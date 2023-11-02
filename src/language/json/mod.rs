@@ -1,7 +1,7 @@
 use pest::iterators::Pairs;
 use pest::Parser;
 use pest_derive::Parser;
-use crate::language::{ParseMatch};
+use crate::language::{ParseMatch, ParseMatchType};
 
 #[derive(Parser)]
 #[grammar = "./language/json/grammar.pest"]
@@ -15,8 +15,8 @@ pub fn parse(str_input: &str) -> Vec<ParseMatch>  {
     for pair in pairs {
         for inner_pair in pair.into_inner() {
 
-            let rule_str:&str = match inner_pair.as_rule() {
-                Rule::STRING => "string",
+            let rule_str:ParseMatchType = match inner_pair.as_rule() {
+                Rule::STRING => ParseMatchType::StringLiteral,
                 _=> continue,
             };
 

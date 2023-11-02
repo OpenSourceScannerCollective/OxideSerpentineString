@@ -2,21 +2,23 @@ pub(crate) mod javascript;
 pub(crate) mod python;
 pub(crate) mod json;
 pub(crate) mod toml;
+pub(crate) mod csv;
 
 use std::str::FromStr;
 use pest::Span;
 use pyo3::{pyclass, pyfunction, PyResult, Python, PyObject, IntoPy};
-use strum_macros::EnumString;
+use strum_macros::{Display, EnumString};
 use crate::patterns::{do_regex, RegexMatchCollection};
 
 #[pyclass(get_all)]
-#[derive(Clone, Copy, EnumString)]
+#[derive(Clone, Copy, EnumString, Display )]
 #[strum(ascii_case_insensitive)]
 pub enum ProgrammingLanguage {
     Python,
     JavaScript,
     Json,
     Toml,
+    Csv,
 }
 
 // TODO: make this a function of ProgrammingLanguage class
@@ -29,7 +31,7 @@ pub fn lang_from_str(str_input: &str) -> ProgrammingLanguage {
 #[pyclass(get_all)]
 #[derive(Default, Clone)]
 pub struct ParseMatch {
-    pub kind: String,
+    pub kind: ParseMatchType,
     pub value: String,
     pub raw: String,
     pub position: MatchPos,
@@ -37,7 +39,7 @@ pub struct ParseMatch {
 }
 
 impl ParseMatch {
-    fn from(rule_str: &str, value_str: &str, raw_str: &str, inner_span: Span) -> ParseMatch {
+    fn from(rule_str: ParseMatchType, value_str: &str, raw_str: &str, inner_span: Span) -> ParseMatch {
         let source_pos = MatchPos {
             char: MatchSpan {
                 start: inner_span.start_pos().pos(),
@@ -49,7 +51,7 @@ impl ParseMatch {
             },
         };
         let p_match = ParseMatch {
-            kind: rule_str.to_string(),
+            kind: rule_str,
             value: value_str.to_string(),
             raw: raw_str.to_string(),
             position: source_pos.clone(),
@@ -74,6 +76,16 @@ pub struct MatchPos {
     pub line: MatchSpan
 }
 
+#[pyclass(get_all)]
+#[derive(Default, Clone, Copy, EnumString, Display)]
+#[strum(ascii_case_insensitive)]
+pub enum ParseMatchType {
+    #[default]
+    Unknown,
+    StringLiteral,
+    Comment
+}
+
 #[pyfunction]
 pub fn parse_with_enum(py: Python<'_>, str_input: &str, lang: ProgrammingLanguage) -> PyResult<PyObject> {
 
@@ -82,6 +94,7 @@ pub fn parse_with_enum(py: Python<'_>, str_input: &str, lang: ProgrammingLanguag
         ProgrammingLanguage::Python => python::parse(str_input),
         ProgrammingLanguage::Json => json::parse(str_input),
         ProgrammingLanguage::Toml => toml::parse(str_input),
+        ProgrammingLanguage::Csv => csv::parse(str_input),
     };
 
     return Ok(tokens.into_py(py));

@@ -4,28 +4,26 @@ use pest_derive::Parser;
 use crate::language::{ParseMatch, ParseMatchType};
 
 #[derive(Parser)]
-#[grammar = "./language/toml/grammar.pest"]
-pub struct TomlParser;
+#[grammar = "./language/csv/grammar.pest"]
+pub struct CsvParser;
 
 pub fn parse(str_input: &str) -> Vec<ParseMatch>  {
 
     let mut tokens:Vec<ParseMatch> = Vec::new();
-    let pairs: Pairs<Rule> = TomlParser::parse(Rule::PROGRAM, &str_input).unwrap_or_else(|e| panic!("{}", e));
+    let pairs: Pairs<Rule> = CsvParser::parse(Rule::PROGRAM, &str_input).unwrap_or_else(|e| panic!("{}", e));
 
     for pair in pairs {
         for inner_pair in pair.into_inner() {
 
             let rule_str:ParseMatchType = match inner_pair.as_rule() {
-                Rule::COMMENTS => ParseMatchType::Comment,
-                Rule::STRING => ParseMatchType::StringLiteral,
+                Rule::RECORD => ParseMatchType::StringLiteral,
                 _=> continue,
             };
 
             let mut match_contents:&str = inner_pair.as_str();
             for nested_pair in inner_pair.clone().into_inner() {
                 match nested_pair.as_rule() {
-                    Rule::sl_comment_text |
-                    Rule::sl_str_text => {
+                    Rule::FIELD => {
                         match_contents = nested_pair.as_str();
                         break;
                     },

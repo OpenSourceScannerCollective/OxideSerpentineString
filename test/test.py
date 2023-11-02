@@ -1,3 +1,5 @@
+import inspect
+
 import oxide_serpentine_string
 from termcolor import colored, cprint
 
@@ -12,9 +14,11 @@ def test_parser(lang, verbose):
         filepath = "./test/language/json/test.json"
     elif lang.lower() == "toml":
         filepath = "./test/language/toml/test.toml"
+    elif lang.lower() == "csv":
+        filepath = "./test/language/csv/test.csv"
     else:
         if verbose:
-            print(colored("Invalid parser language: <" + lang + ">", "red", "on_black"))
+            print(colored(" Invalid parser language: <" + lang.lower() + "> ", "red", "on_black"))
         return
 
     with open(filepath) as f:
@@ -28,17 +32,22 @@ def test_parser(lang, verbose):
     results = oxide_serpentine_string.parse(data, lang)
 
     if verbose:
-        for res in results:
-            print(colored("kind: ", "yellow"), end="")
-            if res.kind == "string":
-                print(colored("<" + res.kind + ">", "cyan"))
+        for index, res in enumerate(results):
+            print(colored("\nMatch [", "dark_grey") + colored(str(index), "light_grey"), end="")
+            print(colored("] of (" + str(len(results)) + ")", "dark_grey"))
+
+            if res.kind == oxide_serpentine_string.ParseMatchType.StringLiteral:
+                kind = "string"
+            elif res.kind == oxide_serpentine_string.ParseMatchType.Comment:
+                kind = "comment"
             else:
-                print(colored("<" + res.kind + ">", "magenta"))
+                kind = "unknown"
+            print(colored("\tkind: ", "dark_grey") + colored("<" + kind + ">", "light_grey"))
 
             res_value = res.value if len(res.value) < 100 else res.value[:97] + "..."
-            print(colored("\tvalue:", "dark_grey"), colored(res_value, "blue"))
-            print(colored("\traw:", "dark_grey"), colored(res.raw, "red"))
-            print(colored("\tsource_pos =>", "dark_grey"))
+            print(colored("\tvalue:", "dark_grey"), colored(res_value, "light_grey"))
+            print(colored("\traw:", "dark_grey"), colored(res.raw, "light_grey"))
+            print(colored("\tposition =>", "dark_grey"))
             print(colored("\t\t  char.start: ", "dark_grey") + colored(res.position.char.start, "light_grey"))
             print(colored("\t\t  char.end: ", "dark_grey") + colored(res.position.char.end, "light_grey"))
             print(colored("\t\t  line.start: ", "dark_grey") + colored(res.position.line.start, "light_grey"))
@@ -89,7 +98,7 @@ def test_regex(lang, verbose):
     if lang.lower() == "javascript":
         filepath = "./test/patterns/javascript/test.js"
     else:
-        print(colored("Invalid regex language: <" + lang + ">", "red", "on_black"))
+        print(colored(" Invalid regex language: <" + lang.lower() + "> ", "red", "on_black"))
         return
 
     with open(filepath) as f:
@@ -108,7 +117,8 @@ def lang_tests(verbose):
         "JavaScript",
         "Python",
         "Json",
-        "Toml"
+        "Toml",
+        "Csv"
     ]
 
     for lang in test_langs:
