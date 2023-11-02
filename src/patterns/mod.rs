@@ -56,16 +56,15 @@ pub fn do_regex(str_input: &str) -> HashMap<String, Vec<RegexMatch>> {
     for (key, pattern) in re_patterns {
         for cap in pattern.captures_iter(str_input) {
 
-            let (extract, [_group1]) = cap.extract();
+            let cap_match = cap.get(0).unwrap();
             let re_match = RegexMatch {
                 kind: key.to_string(),
-                value: extract.to_string(),
+                value: cap_match.as_str().to_string(),
                 position: MatchPos {
-                    start: cap.get(0).unwrap().start(),
-                    end: cap.get(0).unwrap().end()
+                    start: cap_match.start(),
+                    end: cap_match.end()
                 }
             };
-
             re_captures.entry(key.to_string()).or_insert(Vec::new()).push(re_match);
         }
     }

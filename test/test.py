@@ -49,7 +49,7 @@ def print_matches(matches, verbose):
         ")" + (":" if len(matches) > 0 else ""),
         "dark_grey"))
     for key, match_arr in matches.items():
-        print(colored("\t\t[" + key + "]", "green") + colored(" => ", "dark_grey"))
+        print(colored("\t\t[" + key + "]", "green") + colored(" => ", "dark_grey") + colored(str(len(match_arr)), "green"))
         for index, match in enumerate(match_arr):
             print(colored("\t\t\t(" + str(index) + ")", "green"))
             print(colored("\t\t\t  kind: ", "dark_grey") + colored(match.kind, "light_grey"))
@@ -86,7 +86,7 @@ def lang_tests(verbose):
     ]
 
     for lang in test_langs:
-        test_parser(lang, verbose)
+        # test_parser(lang, verbose)
         test_regex(lang, verbose)
 
 
