@@ -7,7 +7,7 @@ use {
     once_cell::sync::Lazy,
     regex::Regex,
 };
-use crate::language::MatchPos;
+use crate::language::{MatchPos, MatchSpan};
 
 
 // TODO:    1. procedural macro to create patterns at compile-time
@@ -39,8 +39,9 @@ pub fn get_patterns() -> HashMap<&'static str, &'static Lazy<Regex>> {
 
     return re_patterns;
 }
+
 #[pyclass(get_all)]
-#[derive(Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct RegexMatchCollection {
     pub kind: String,
     pub source: String,
@@ -48,16 +49,20 @@ pub struct RegexMatchCollection {
 }
 
 #[pyclass(get_all)]
-#[derive(Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct RegexMatch {
     pub value: String,
-    pub char: MatchPos,
-    pub line: MatchPos
+    pub position: MatchPos,
+    pub source_pos: MatchPos
 }
 
-pub fn do_regex(str_input: &str) -> Vec<RegexMatchCollection> {
+pub fn do_regex(str_input: &str, source_pos: Option<MatchPos>) -> Vec<RegexMatchCollection> {
 
     let mut re_results: Vec<RegexMatchCollection> = Vec::new();
+    let source_position = match source_pos {
+        None => MatchPos::default(),
+        _=> source_pos.clone().unwrap()
+    };
 
     let source = str_input;
     for (key, pattern) in get_patterns() {
@@ -65,18 +70,31 @@ pub fn do_regex(str_input: &str) -> Vec<RegexMatchCollection> {
         let mut re_matches:Vec<RegexMatch> = Vec::new();
         let mut cap_match: Match;
         let line_positions = LinePositions::from(str_input);
+
         for cap in pattern.captures_iter(str_input) {
             cap_match = cap.get(0).unwrap();
             re_matches.push(RegexMatch {
                 value: cap_match.as_str().to_string(),
-                char: MatchPos {
-                    start: cap_match.start(),
-                    end: cap_match.end()
+                position: MatchPos {
+                    char: MatchSpan {
+                        start: cap_match.start(),
+                        end: cap_match.end()
+                    },
+                    line: MatchSpan {
+                        start: line_positions.from_offset(cap_match.start()).as_usize() + 1,
+                        end: line_positions.from_offset(cap_match.end()).as_usize() + 1
+                    }
                 },
-                line: MatchPos {
-                    start: line_positions.from_offset(cap_match.start()).as_usize()+1,
-                    end: line_positions.from_offset(cap_match.end()).as_usize()+1
-                }
+                source_pos: MatchPos {
+                    char: MatchSpan {
+                        start: cap_match.start() + source_position.char.start,
+                        end: cap_match.end() + source_position.char.end
+                    },
+                    line: MatchSpan {
+                        start: line_positions.from_offset(cap_match.start()).as_usize() + source_position.line.start,
+                        end: line_positions.from_offset(cap_match.end()).as_usize() + source_position.line.end
+                    }
+                },
             });
         }
 
@@ -94,6 +112,6 @@ pub fn do_regex(str_input: &str) -> Vec<RegexMatchCollection> {
 
 #[pyfunction]
 #[pyo3(name = "do_regex")]
-pub fn py_do_regex(py: Python<'_>, str_input: &str) -> PyResult<PyObject> {
-    Ok(do_regex(str_input).into_py(py))
+pub fn py_do_regex(py: Python<'_>, str_input: &str, source_pos: Option<MatchPos>) -> PyResult<PyObject> {
+    Ok(do_regex(str_input, source_pos).into_py(py))
 }

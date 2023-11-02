@@ -36,7 +36,11 @@ def test_parser(lang, verbose):
                 print(colored("<" + res.kind + ">", "magenta"))
             print(colored("\tvalue:", "dark_grey"), colored(res.value, "blue"))
             print(colored("\traw:", "dark_grey"), colored(res.raw, "red"))
-            print(colored("\tloc:", "dark_grey"), colored(res.line.start, "light_grey"))
+            print(colored("\tsource_pos =>", "dark_grey"))
+            print(colored("\t\t  char.start: ", "dark_grey") + colored(res.position.char.start, "light_grey"))
+            print(colored("\t\t  char.end: ", "dark_grey") + colored(res.position.char.end, "light_grey"))
+            print(colored("\t\t  line.start: ", "dark_grey") + colored(res.position.line.start, "light_grey"))
+            print(colored("\t\t  line.end: ", "dark_grey") + colored(res.position.line.end, "light_grey"))
             if len(res.matches) > 0:
                 print_matches(res.matches, verbose)
 
@@ -49,7 +53,8 @@ def print_matches(RegexMatchCollectionArray, verbose):
         ")" + (":" if len(RegexMatchCollectionArray) > 0 else ""),
         "dark_grey"))
     for RegexMatchCollection in RegexMatchCollectionArray:
-        print(colored("\t\t[" + RegexMatchCollection.kind + "]", "green"))
+        # print(colored("\t\t[" + RegexMatchCollection.kind + "]", "green"))
+        print(colored("\t\t  kind: ", "dark_grey") + colored(RegexMatchCollection.kind, "green"))
 
         # get the first non-empty line
         source = ""
@@ -63,12 +68,18 @@ def print_matches(RegexMatchCollectionArray, verbose):
         ")" + (":" if len(RegexMatchCollection.matches) > 0 else ""),
         "dark_grey"))
         for index, RegexMatch in enumerate(RegexMatchCollection.matches):
-            print(colored("\t\t\t(" + str(index) + ")", "green"))
+            print(colored("\t\t\t[", "dark_grey") + colored(str(index),"light_grey") + colored("]", "dark_grey"))
             print(colored("\t\t\t  value: ", "dark_grey") + colored(RegexMatch.value, "light_grey"))
-            print(colored("\t\t\t  char.start: ", "dark_grey") + colored(RegexMatch.char.start, "light_grey"))
-            print(colored("\t\t\t  char.end: ", "dark_grey") + colored(RegexMatch.char.end, "light_grey"))
-            print(colored("\t\t\t  line.start: ", "dark_grey") + colored(RegexMatch.line.start, "light_grey"))
-            print(colored("\t\t\t  line.end: ", "dark_grey") + colored(RegexMatch.line.end, "light_grey"))
+            print(colored("\t\t\t  position => ", "dark_grey"))
+            print(colored("\t\t\t\t  char.start: ", "dark_grey") + colored(RegexMatch.position.char.start, "light_grey"))
+            print(colored("\t\t\t\t  char.end: ", "dark_grey") + colored(RegexMatch.position.char.end, "light_grey"))
+            print(colored("\t\t\t\t  line.start: ", "dark_grey") + colored(RegexMatch.position.line.start, "light_grey"))
+            print(colored("\t\t\t\t  line.end: ", "dark_grey") + colored(RegexMatch.position.line.end, "light_grey"))
+            print(colored("\t\t\t  source_pos =>", "dark_grey"))
+            print(colored("\t\t\t\t  char.start: ", "dark_grey") + colored(RegexMatch.source_pos.char.start, "light_grey"))
+            print(colored("\t\t\t\t  char.end: ", "dark_grey") + colored(RegexMatch.source_pos.char.end, "light_grey"))
+            print(colored("\t\t\t\t  line.start: ", "dark_grey") + colored(RegexMatch.source_pos.line.start, "light_grey"))
+            print(colored("\t\t\t\t  line.end: ", "dark_grey") + colored(RegexMatch.source_pos.line.end, "light_grey"))
 
 
 def test_regex(lang, verbose):
@@ -76,7 +87,7 @@ def test_regex(lang, verbose):
     if lang.lower() == "javascript":
         filepath = "./test/patterns/javascript/test.js"
     else:
-        print(colored("Invalid parser language: <" + lang + ">", "red", "on_black"))
+        print(colored("Invalid regex language: <" + lang + ">", "red", "on_black"))
         return
 
     with open(filepath) as f:
@@ -92,7 +103,7 @@ def test_regex(lang, verbose):
 
 def lang_tests(verbose):
     test_langs = [
-        "JavaScript"
+        "JavaScript",
         # "Python",
         # "Json",
         # "Toml"

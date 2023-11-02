@@ -27,31 +27,33 @@ pub fn lang_from_str(str_input: &str) -> ProgrammingLanguage {
 }
 
 #[pyclass(get_all)]
-#[derive(Clone)]
+#[derive(Default, Clone)]
 pub struct ParseMatch {
     pub kind: String,
     pub value: String,
     pub raw: String,
-    pub char: MatchPos,
-    pub line: MatchPos,
+    pub position: MatchPos,
     pub matches: Vec<RegexMatchCollection>
 }
 
 impl ParseMatch {
     fn from(rule_str: &str, value_str: &str, raw_str: &str, inner_span: Span) -> ParseMatch {
+        let source_pos = MatchPos {
+            char: MatchSpan {
+                start: inner_span.start_pos().pos(),
+                end: inner_span.end_pos().pos()
+            },
+            line: MatchSpan {
+                start: inner_span.start_pos().line_col().0,
+                end: inner_span.end_pos().line_col().0
+            },
+        };
         let p_match = ParseMatch {
             kind: rule_str.to_string(),
             value: value_str.to_string(),
             raw: raw_str.to_string(),
-            char: MatchPos {
-                start: inner_span.start_pos().pos(),
-                end: inner_span.end_pos().pos()
-            },
-            line: MatchPos {
-                start: inner_span.start_pos().line_col().0,
-                end: inner_span.end_pos().line_col().0
-            },
-            matches: do_regex(value_str).into()
+            position: source_pos.clone(),
+            matches: do_regex(value_str, Some(source_pos)).into()
         };
 
         return p_match;
@@ -59,10 +61,17 @@ impl ParseMatch {
 }
 
 #[pyclass(get_all)]
-#[derive(Clone)]
-pub struct MatchPos {
+#[derive(Default, Debug, Clone)]
+pub struct MatchSpan {
     pub start: usize,
     pub end: usize
+}
+
+#[pyclass(get_all)]
+#[derive(Default, Debug, Clone)]
+pub struct MatchPos {
+    pub char: MatchSpan,
+    pub line: MatchSpan
 }
 
 #[pyfunction]
