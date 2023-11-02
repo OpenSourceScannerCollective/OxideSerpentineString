@@ -8,7 +8,7 @@ use std::str::FromStr;
 use pest::Span;
 use pyo3::{pyclass, pyfunction, PyResult, Python, PyObject, IntoPy};
 use strum_macros::EnumString;
-use crate::patterns::do_regex;
+use crate::patterns::{do_regex, RegexMatch};
 
 #[pyclass(get_all)]
 #[derive(Clone, Copy, EnumString)]
@@ -20,6 +20,7 @@ pub enum ProgrammingLanguage {
     Toml,
 }
 
+// TODO: make this a function of ProgrammingLanguage class
 #[pyfunction]
 #[allow(dead_code)]
 pub fn lang_from_str(str_input: &str) -> ProgrammingLanguage {
@@ -29,12 +30,12 @@ pub fn lang_from_str(str_input: &str) -> ProgrammingLanguage {
 #[pyclass(get_all)]
 #[derive(Clone)]
 pub struct ParseMatch {
-    kind: String,
-    value: String,
-    raw: String,
-    char: MatchPos,
-    line: MatchPos,
-    matches: HashMap<String, Vec<String>>
+    pub kind: String,
+    pub value: String,
+    pub raw: String,
+    pub char: MatchPos,
+    pub line: MatchPos,
+    pub matches: HashMap<String, Vec<RegexMatch>>
 }
 
 impl ParseMatch {
@@ -61,8 +62,8 @@ impl ParseMatch {
 #[pyclass(get_all)]
 #[derive(Clone)]
 pub struct MatchPos {
-    start: usize,
-    end: usize
+    pub start: usize,
+    pub end: usize
 }
 
 #[pyfunction]

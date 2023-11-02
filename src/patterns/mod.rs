@@ -1,11 +1,12 @@
 use std::collections::HashMap;
-use pyo3::{pyfunction, PyResult, Python, ToPyObject};
+use pyo3::{IntoPy, pyclass, pyfunction, PyResult, Python, ToPyObject};
 use pyo3::types::IntoPyDict;
 use pyo3::PyObject;
 use {
     once_cell::sync::Lazy,
     regex::Regex,
 };
+use crate::language::MatchPos;
 
 
 // TODO:    1. supply patterns from a config file at compile-time
@@ -38,23 +39,35 @@ pub fn get_patterns() -> HashMap<&'static str, &'static Lazy<Regex>> {
     return re_patterns;
 }
 
+#[pyclass(get_all)]
+#[derive(Clone)]
+pub struct RegexMatch {
+    pub kind: String,
+    pub value: String,
+    pub position: MatchPos
+}
+
 // TODO:    1. m̶o̶v̶e̶ ̶t̶o̶ ̶a̶ ̶v̶e̶c̶t̶o̶r̶ ̶o̶f̶ ̶h̶a̶s̶h̶m̶a̶p̶s̶ ̶t̶o̶ ̶a̶l̶l̶o̶w̶ ̶f̶o̶r̶ ̶m̶u̶l̶t̶i̶p̶l̶e̶ ̶i̶n̶s̶t̶a̶n̶c̶e̶s̶ ̶o̶f̶ ̶t̶h̶e̶ ̶s̶a̶m̶e̶ ̶k̶e̶y̶
 //          2. provide meta-data for the match including positional information
-pub fn do_regex(str_input: &str) -> HashMap<String, Vec<String>> {
+pub fn do_regex(str_input: &str) -> HashMap<String, Vec<RegexMatch>> {
 
     let re_patterns: HashMap<&'static str, &'static Lazy<Regex>> = get_patterns();
-    let mut re_captures:HashMap<String, Vec<String>> = HashMap::new();
+    let mut re_captures:HashMap<String, Vec<RegexMatch>> = HashMap::new();
 
     for (key, pattern) in re_patterns {
-        for (cap, [_group1]) in pattern.captures_iter(str_input).map(|c| c.extract()) {
+        for cap in pattern.captures_iter(str_input) {
 
-            if !re_captures.contains_key(key) {
-                let vec = Vec::from([cap.to_string()]);
-                re_captures.insert(key.to_string(), vec);
-                continue;
-            }
+            let (extract, [_group1]) = cap.extract();
+            let re_match = RegexMatch {
+                kind: key.to_string(),
+                value: extract.to_string(),
+                position: MatchPos {
+                    start: cap.get(0).unwrap().start(),
+                    end: cap.get(0).unwrap().end()
+                }
+            };
 
-            re_captures.entry(key.to_string()).or_insert(Vec::new()).push(cap.to_string());
+            re_captures.entry(key.to_string()).or_insert(Vec::new()).push(re_match);
         }
     }
 
@@ -64,5 +77,6 @@ pub fn do_regex(str_input: &str) -> HashMap<String, Vec<String>> {
 #[pyfunction]
 #[pyo3(name = "do_regex")]
 pub fn py_do_regex(py: Python<'_>, str_input: &str) -> PyResult<PyObject> {
-    Ok(do_regex(str_input).into_py_dict(py).to_object(py))
+    // Ok(do_regex(str_input).into_py_dict(py).to_object(py))
+    Ok(do_regex(str_input).into_py(py))
 }
