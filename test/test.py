@@ -106,9 +106,9 @@ def test_regex(lang, verbose):
 def lang_tests(verbose):
     test_langs = [
         "JavaScript",
-        # "Python",
-        # "Json",
-        # "Toml"
+        "Python",
+        "Json",
+        "Toml"
     ]
 
     for lang in test_langs:
