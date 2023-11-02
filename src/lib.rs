@@ -4,7 +4,7 @@ mod language;
 use pyo3::prelude::*;
 
 #[pymodule]
-fn string_extract(_py: Python, m: &PyModule) -> PyResult<()> {
+fn oxide_serpentine_string(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<language::ParseMatch>()?;
     m.add_class::<language::MatchPos>()?;
     m.add_class::<language::ProgrammingLanguage>()?;

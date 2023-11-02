@@ -133,6 +133,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dd8b5dd2ae5ed71462c540258bedcb51965123ad7e7ccf4b9a8cafaa4a63576d"
 
 [[package]]
+name = "oxide_serpentine_string"
+version = "0.1.0"
+dependencies = [
+ "line-numbers",
+ "once_cell",
+ "pest",
+ "pest_derive",
+ "pyo3",
+ "regex",
+ "strum",
+ "strum_macros",
+]
+
+[[package]]
 name = "parking_lot"
 version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -345,20 +359,6 @@ name = "smallvec"
 version = "1.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "942b4a808e05215192e39f4ab80813e599068285906cc91aa64f923db842bd5a"
-
-[[package]]
-name = "string_extract"
-version = "0.1.0"
-dependencies = [
- "line-numbers",
- "once_cell",
- "pest",
- "pest_derive",
- "pyo3",
- "regex",
- "strum",
- "strum_macros",
-]
 
 [[package]]
 name = "strum"

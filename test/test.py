@@ -1,4 +1,4 @@
-import string_extract
+import oxide_serpentine_string
 from termcolor import colored, cprint
 
 
@@ -25,7 +25,7 @@ def test_parser(lang, verbose):
               colored(lang.upper(), "blue", "on_red") +
               colored(" # ", "white", "on_red"))
 
-    results = string_extract.parse(data, lang)
+    results = oxide_serpentine_string.parse(data, lang)
 
     if verbose:
         for res in results:
@@ -98,7 +98,7 @@ def test_regex(lang, verbose):
               colored(lang.upper(), "blue", "on_red") +
               colored(" # ", "white", "on_red"))
 
-        print_matches(string_extract.do_regex(data), verbose)
+        print_matches(oxide_serpentine_string.do_regex(data), verbose)
 
 
 def lang_tests(verbose):
