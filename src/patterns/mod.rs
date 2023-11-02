@@ -1,6 +1,5 @@
 use std::collections::HashMap;
-use pyo3::{IntoPy, pyclass, pyfunction, PyResult, Python, ToPyObject};
-use pyo3::types::IntoPyDict;
+use pyo3::{IntoPy, pyclass, pyfunction, PyResult, Python};
 use pyo3::PyObject;
 use {
     once_cell::sync::Lazy,

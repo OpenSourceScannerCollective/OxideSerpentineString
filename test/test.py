@@ -86,7 +86,7 @@ def lang_tests(verbose):
     ]
 
     for lang in test_langs:
-        # test_parser(lang, verbose)
+        test_parser(lang, verbose)
         test_regex(lang, verbose)
 
 
