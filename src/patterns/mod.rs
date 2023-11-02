@@ -1,6 +1,8 @@
 use std::collections::HashMap;
+use line_numbers::LinePositions;
 use pyo3::{IntoPy, pyclass, pyfunction, PyResult, Python};
 use pyo3::PyObject;
+use regex::Match;
 use {
     once_cell::sync::Lazy,
     regex::Regex,
@@ -8,8 +10,8 @@ use {
 use crate::language::MatchPos;
 
 
-// TODO:    1. supply patterns from a config file at compile-time
-//          2. supply patterns from a config file at run-time
+// TODO:    1. procedural macro to create patterns at compile-time
+//          2. ability to supply patterns at run-time
 #[allow(dead_code)]
 pub fn get_patterns() -> HashMap<&'static str, &'static Lazy<Regex>> {
 
@@ -37,44 +39,61 @@ pub fn get_patterns() -> HashMap<&'static str, &'static Lazy<Regex>> {
 
     return re_patterns;
 }
+#[pyclass(get_all)]
+#[derive(Clone)]
+pub struct RegexMatchCollection {
+    pub kind: String,
+    pub source: String,
+    pub matches: Vec<RegexMatch>
+}
 
 #[pyclass(get_all)]
 #[derive(Clone)]
 pub struct RegexMatch {
-    pub kind: String,
     pub value: String,
-    pub position: MatchPos
+    pub char: MatchPos,
+    pub line: MatchPos
 }
 
-// TODO:    1. m̶o̶v̶e̶ ̶t̶o̶ ̶a̶ ̶v̶e̶c̶t̶o̶r̶ ̶o̶f̶ ̶h̶a̶s̶h̶m̶a̶p̶s̶ ̶t̶o̶ ̶a̶l̶l̶o̶w̶ ̶f̶o̶r̶ ̶m̶u̶l̶t̶i̶p̶l̶e̶ ̶i̶n̶s̶t̶a̶n̶c̶e̶s̶ ̶o̶f̶ ̶t̶h̶e̶ ̶s̶a̶m̶e̶ ̶k̶e̶y̶
-//          2. provide meta-data for the match including positional information
-pub fn do_regex(str_input: &str) -> HashMap<String, Vec<RegexMatch>> {
+pub fn do_regex(str_input: &str) -> Vec<RegexMatchCollection> {
 
-    let re_patterns: HashMap<&'static str, &'static Lazy<Regex>> = get_patterns();
-    let mut re_captures:HashMap<String, Vec<RegexMatch>> = HashMap::new();
+    let mut re_results: Vec<RegexMatchCollection> = Vec::new();
 
-    for (key, pattern) in re_patterns {
+    let source = str_input;
+    for (key, pattern) in get_patterns() {
+
+        let mut re_matches:Vec<RegexMatch> = Vec::new();
+        let mut cap_match: Match;
+        let line_positions = LinePositions::from(str_input);
         for cap in pattern.captures_iter(str_input) {
-
-            let cap_match = cap.get(0).unwrap();
-            let re_match = RegexMatch {
-                kind: key.to_string(),
+            cap_match = cap.get(0).unwrap();
+            re_matches.push(RegexMatch {
                 value: cap_match.as_str().to_string(),
-                position: MatchPos {
+                char: MatchPos {
                     start: cap_match.start(),
                     end: cap_match.end()
+                },
+                line: MatchPos {
+                    start: line_positions.from_offset(cap_match.start()).as_usize()+1,
+                    end: line_positions.from_offset(cap_match.end()).as_usize()+1
                 }
-            };
-            re_captures.entry(key.to_string()).or_insert(Vec::new()).push(re_match);
+            });
+        }
+
+        if re_matches.len() > 0 {
+            re_results.push(RegexMatchCollection {
+                kind: key.to_string(),
+                source: source.to_string(),
+                matches: re_matches,
+            });
         }
     }
 
-    return re_captures.into();
+    return re_results.into();
 }
 
 #[pyfunction]
 #[pyo3(name = "do_regex")]
 pub fn py_do_regex(py: Python<'_>, str_input: &str) -> PyResult<PyObject> {
-    // Ok(do_regex(str_input).into_py_dict(py).to_object(py))
     Ok(do_regex(str_input).into_py(py))
 }

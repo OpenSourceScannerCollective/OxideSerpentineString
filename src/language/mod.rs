@@ -3,12 +3,11 @@ pub(crate) mod python;
 pub(crate) mod json;
 pub(crate) mod toml;
 
-use std::collections::HashMap;
 use std::str::FromStr;
 use pest::Span;
 use pyo3::{pyclass, pyfunction, PyResult, Python, PyObject, IntoPy};
 use strum_macros::EnumString;
-use crate::patterns::{do_regex, RegexMatch};
+use crate::patterns::{do_regex, RegexMatchCollection};
 
 #[pyclass(get_all)]
 #[derive(Clone, Copy, EnumString)]
@@ -35,7 +34,7 @@ pub struct ParseMatch {
     pub raw: String,
     pub char: MatchPos,
     pub line: MatchPos,
-    pub matches: HashMap<String, Vec<RegexMatch>>
+    pub matches: Vec<RegexMatchCollection>
 }
 
 impl ParseMatch {
@@ -52,7 +51,7 @@ impl ParseMatch {
                 start: inner_span.start_pos().line_col().0,
                 end: inner_span.end_pos().line_col().0
             },
-            matches: do_regex(raw_str).into()
+            matches: do_regex(value_str).into()
         };
 
         return p_match;

@@ -16,3 +16,4 @@ regex = { version = "1.3", default-features = true, features = ["std"] }
 once_cell = { version = "1.18.0", features = [] }
 strum = "0.25"
 strum_macros = { version = "0.25", features = [] }
+line-numbers = "0.2.2"

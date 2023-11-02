@@ -1,9 +1,9 @@
+// nothing -----BEGIN DSA PRIVATE KEY-----
+// comment with key: -----BEGIN RSA PRIVATE KEY-----
 
-// comment with key -----BEGIN RSA PRIVATE KEY-----
+var mystr = "variable with key: -----BEGIN EC PRIVATE KEY----- ";
 
-var mystr = "variable with key -----BEGIN EC PRIVATE KEY----- "
-
-mystr = "-----BEGIN EC PRIVATE KEY----- variable with multiple keys -----BEGIN EC PRIVATE KEY----- "
+mystr = "-----BEGIN EC PRIVATE KEY----- variable with multiple keys -----BEGIN EC PRIVATE KEY----- ";
 
 mystr = "this is a multi-\
 line string with embedded secrets:\

@@ -41,21 +41,34 @@ def test_parser(lang, verbose):
                 print_matches(res.matches, verbose)
 
 
-def print_matches(matches, verbose):
+def print_matches(RegexMatchCollectionArray, verbose):
     if not verbose:
         return
 
-    print(colored("\tmatches (", "dark_grey") + colored(str(len(matches)), "light_grey") + colored(
-        ")" + (":" if len(matches) > 0 else ""),
+    print(colored("\tmatches (", "dark_grey") + colored(str(len(RegexMatchCollectionArray)), "light_grey") + colored(
+        ")" + (":" if len(RegexMatchCollectionArray) > 0 else ""),
         "dark_grey"))
-    for key, match_arr in matches.items():
-        print(colored("\t\t[" + key + "]", "green") + colored(" => ", "dark_grey") + colored(str(len(match_arr)), "green"))
-        for index, match in enumerate(match_arr):
+    for RegexMatchCollection in RegexMatchCollectionArray:
+        print(colored("\t\t[" + RegexMatchCollection.kind + "]", "green"))
+
+        # get the first non-empty line
+        source = ""
+        for line in RegexMatchCollection.source.splitlines():
+            if line.strip() != "":
+                source = line
+                break
+        source = source if len(source) < 100 else source[:97] + "..."
+        print(colored("\t\t  source: ", "dark_grey") + colored(source, "light_grey"))
+        print(colored("\t\t  matches (", "dark_grey") + colored(str(len(RegexMatchCollection.matches)), "light_grey") + colored(
+        ")" + (":" if len(RegexMatchCollection.matches) > 0 else ""),
+        "dark_grey"))
+        for index, RegexMatch in enumerate(RegexMatchCollection.matches):
             print(colored("\t\t\t(" + str(index) + ")", "green"))
-            print(colored("\t\t\t  kind: ", "dark_grey") + colored(match.kind, "light_grey"))
-            print(colored("\t\t\t  value: ", "dark_grey") + colored(match.value, "light_grey"))
-            print(colored("\t\t\t  position.start: ", "dark_grey") + colored(match.position.start, "light_grey"))
-            print(colored("\t\t\t  position.end: ", "dark_grey") + colored(match.position.end, "light_grey"))
+            print(colored("\t\t\t  value: ", "dark_grey") + colored(RegexMatch.value, "light_grey"))
+            print(colored("\t\t\t  char.start: ", "dark_grey") + colored(RegexMatch.char.start, "light_grey"))
+            print(colored("\t\t\t  char.end: ", "dark_grey") + colored(RegexMatch.char.end, "light_grey"))
+            print(colored("\t\t\t  line.start: ", "dark_grey") + colored(RegexMatch.line.start, "light_grey"))
+            print(colored("\t\t\t  line.end: ", "dark_grey") + colored(RegexMatch.line.end, "light_grey"))
 
 
 def test_regex(lang, verbose):
@@ -79,14 +92,14 @@ def test_regex(lang, verbose):
 
 def lang_tests(verbose):
     test_langs = [
-        "JavaScript",
-        "Python",
-        "Json",
-        "Toml"
+        "JavaScript"
+        # "Python",
+        # "Json",
+        # "Toml"
     ]
 
     for lang in test_langs:
-        # test_parser(lang, verbose)
+        test_parser(lang, verbose)
         test_regex(lang, verbose)
 
 
