@@ -5,7 +5,6 @@ from termcolor import colored, cprint
 
 
 def test_parser(lang, verbose):
-
     if lang.lower() == "javascript":
         filepath = "./test/language/javascript/test.js"
     elif lang.lower() == "python":
@@ -28,8 +27,11 @@ def test_parser(lang, verbose):
         print(colored(" # TEST PARSER: ", "white", "on_red") +
               colored(lang.upper(), "blue", "on_red") +
               colored(" # ", "white", "on_red"))
-
-    results = oxide_serpentine_string.parse(data, lang)
+    try:
+        results = oxide_serpentine_string.parse_with_lang_str(data, lang)
+    except:
+        print("Unable to parse input for: " + lang)
+        results = []
 
     if verbose:
         for index, res in enumerate(results):
@@ -74,26 +76,30 @@ def print_matches(RegexMatchCollectionArray, verbose):
                 break
         source = source if len(source) <= 100 else source[:97] + "..."
         print(colored("\t\t  source: ", "dark_grey") + colored(source, "light_grey"))
-        print(colored("\t\t  matches (", "dark_grey") + colored(str(len(RegexMatchCollection.matches)), "light_grey") + colored(
-        ")" + (":" if len(RegexMatchCollection.matches) > 0 else ""),
-        "dark_grey"))
+        print(colored("\t\t  matches (", "dark_grey") + colored(str(len(RegexMatchCollection.matches)),
+                                                                "light_grey") + colored(
+            ")" + (":" if len(RegexMatchCollection.matches) > 0 else ""),
+            "dark_grey"))
         for index, RegexMatch in enumerate(RegexMatchCollection.matches):
-            print(colored("\t\t\t[", "dark_grey") + colored(str(index),"light_grey") + colored("]", "dark_grey"))
+            print(colored("\t\t\t[", "dark_grey") + colored(str(index), "light_grey") + colored("]", "dark_grey"))
             print(colored("\t\t\t  value: ", "dark_grey") + colored(RegexMatch.value, "light_grey"))
             print(colored("\t\t\t  position => ", "dark_grey"))
-            print(colored("\t\t\t\t  char.start: ", "dark_grey") + colored(RegexMatch.position.char.start, "light_grey"))
+            print(
+                colored("\t\t\t\t  char.start: ", "dark_grey") + colored(RegexMatch.position.char.start, "light_grey"))
             print(colored("\t\t\t\t  char.end: ", "dark_grey") + colored(RegexMatch.position.char.end, "light_grey"))
-            print(colored("\t\t\t\t  line.start: ", "dark_grey") + colored(RegexMatch.position.line.start, "light_grey"))
+            print(
+                colored("\t\t\t\t  line.start: ", "dark_grey") + colored(RegexMatch.position.line.start, "light_grey"))
             print(colored("\t\t\t\t  line.end: ", "dark_grey") + colored(RegexMatch.position.line.end, "light_grey"))
             print(colored("\t\t\t  source_pos =>", "dark_grey"))
-            print(colored("\t\t\t\t  char.start: ", "dark_grey") + colored(RegexMatch.source_pos.char.start, "light_grey"))
+            print(colored("\t\t\t\t  char.start: ", "dark_grey") + colored(RegexMatch.source_pos.char.start,
+                                                                           "light_grey"))
             print(colored("\t\t\t\t  char.end: ", "dark_grey") + colored(RegexMatch.source_pos.char.end, "light_grey"))
-            print(colored("\t\t\t\t  line.start: ", "dark_grey") + colored(RegexMatch.source_pos.line.start, "light_grey"))
+            print(colored("\t\t\t\t  line.start: ", "dark_grey") + colored(RegexMatch.source_pos.line.start,
+                                                                           "light_grey"))
             print(colored("\t\t\t\t  line.end: ", "dark_grey") + colored(RegexMatch.source_pos.line.end, "light_grey"))
 
 
 def test_regex(lang, verbose):
-
     if lang.lower() == "javascript":
         filepath = "./test/patterns/javascript/test.js"
     else:
@@ -112,7 +118,6 @@ def test_regex(lang, verbose):
 
 
 def test_detect_lang(lang, verbose):
-
     if lang.lower() == "javascript":
         ext = "js"
     elif lang.lower() == "python":
@@ -128,28 +133,37 @@ def test_detect_lang(lang, verbose):
             print(colored(" Invalid parser language: <" + lang.lower() + "> ", "red", "on_black"))
         return
 
+    if verbose:
+        print(colored(" # TEST LANG DETECT: ", "white", "on_red") +
+              colored(lang.upper(), "blue", "on_red") +
+              colored(" # ", "white", "on_red"))
+
     filepath = "./test/language/" + lang.lower() + "/test." + ext
 
     with open(filepath) as f:
         data = f.read()
 
-    syntax = oxide_serpentine_string.detect_language(data)
-    print("Source: ", lang, "\t\tDetected: ", syntax)
+    for index, path in enumerate([filepath, ""]):
+        detected_lang = oxide_serpentine_string.detect_language(data, path)
+        path = "\"" + path + "\""
+        print(colored("With filepath: ", "dark_grey") + colored(path, "light_grey"))
+        print(colored("\tDetected: ", "dark_grey") + colored(detected_lang, "light_grey"))
 
 
 def lang_tests(verbose):
     test_langs = [
         "JavaScript",
         "Python",
-        # "Json",
-        # "Toml",
-        # "Csv"
+        "Json",
+        "Toml",
+        "Csv"
     ]
 
     for lang in test_langs:
-        # test_parser(lang, verbose)
-        # test_regex(lang, verbose)
+        test_parser(lang, verbose)
+        test_regex(lang, verbose)
         test_detect_lang(lang, verbose)
+
 
 # begin
 lang_tests(True)

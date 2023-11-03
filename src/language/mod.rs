@@ -8,17 +8,15 @@ use std::path::Path;
 use std::str::FromStr;
 use pest::Span;
 use pyo3::{pyclass, pyfunction, PyResult, Python, PyObject, IntoPy};
+use pyo3::exceptions::PyValueError;
 use strum_macros::{Display, EnumString};
 use crate::patterns::{do_regex, RegexMatchCollection};
-
-extern crate syntect;
-use syntect::parsing::{SyntaxReference, SyntaxSet};
-use syntect::util::LinesWithEndings;
 
 #[pyclass(get_all)]
 #[derive(Clone, Copy, EnumString, Display )]
 #[strum(ascii_case_insensitive)]
 pub enum ProgrammingLanguage {
+    Unknown,
     Python,
     JavaScript,
     Json,
@@ -92,11 +90,7 @@ pub enum ParseMatchType {
 }
 
 #[pyfunction]
-pub fn parse_with_enum(py: Python<'_>, str_input: &str, lang: ProgrammingLanguage) -> PyResult<PyObject> {
-
-    let detect_lang = detect_language(str_input, None);
-
-    println!("Detected language: {:?}", detect_lang);
+pub fn parse_with_lang_enum(py: Python<'_>, str_input: &str, lang: ProgrammingLanguage) -> PyResult<PyObject> {
 
     let tokens = match lang {
         ProgrammingLanguage::JavaScript => javascript::parse(str_input),
@@ -104,42 +98,51 @@ pub fn parse_with_enum(py: Python<'_>, str_input: &str, lang: ProgrammingLanguag
         ProgrammingLanguage::Json => json::parse(str_input),
         ProgrammingLanguage::Toml => toml::parse(str_input),
         ProgrammingLanguage::Csv => csv::parse(str_input),
+
+        _ => panic!("Invalid programming language: Unknown"),
     };
 
     return Ok(tokens.into_py(py));
 }
 
 #[pyfunction]
-pub fn parse(py: Python<'_>, str_input: &str, str_lang: &str) -> PyResult<PyObject> {
+pub fn parse_with_lang_str(py: Python<'_>, str_input: &str, str_lang: &str) -> PyResult<PyObject> {
     let lang: ProgrammingLanguage = match ProgrammingLanguage::from_str(str_lang) {
         Ok(data) => data,
         Err(err) => panic!("Problem parsing string: {:?}", err),
     };
-    return parse_with_enum(py, str_input, lang);
+    return parse_with_lang_enum(py, str_input, lang);
 }
 
 #[pyfunction]
-pub fn detect_language(input_str: &str, file_path: Option<&str>) -> Option<String> {
+pub fn parse(py: Python<'_>, str_input: &str, file_path: &str) -> PyResult<PyObject> {
 
-    let syntax_set = SyntaxSet::load_defaults_newlines();
-    let mut syntax_ref: Option<&SyntaxReference>;
+    let str_lang = detect_language(str_input, file_path);
 
-    if file_path.is_some() {
-        let path: &Path = Path::new(file_path.unwrap());
-        let file_ext = path.extension().and_then(|x| x.to_str()).unwrap_or("");
-        syntax_ref = syntax_set.find_syntax_by_extension(file_ext);
-        if syntax_ref.is_some() {
-            return Some(syntax_ref.unwrap().name.to_string());
-        }
+    if str_lang.is_none() {
+        return Err(PyValueError::new_err("Unable to detect language"))
     }
 
-    for line in LinesWithEndings::from(input_str) {
-        syntax_ref = syntax_set.find_syntax_by_first_line(line);
-        if !syntax_ref.is_none() {
-            return Some(syntax_ref.unwrap().name.to_string());
-        }
+    let lang: ProgrammingLanguage = match ProgrammingLanguage::from_str(str_lang.unwrap().as_str()) {
+        Ok(data) => data,
+        Err(err) => panic!("Problem parsing string: {:?}", err),
+    };
+    return parse_with_lang_enum(py, str_input, lang);
+}
+
+#[pyfunction]
+pub fn detect_language(input_str: &str, file_path: &str) -> Option<String> {
+
+    let lang_res = hyperpolyglot::detect_with_str(Path::new(file_path), input_str);
+
+    if lang_res.is_err() {
+        return Some("Unknown".to_string());
     }
 
-    // If no language is detected, return plaintext
-    Some(syntax_set.find_syntax_plain_text().name.to_string())
+    let detect = lang_res.unwrap();
+    if detect.is_none() {
+        return Some("Unknown".to_string());
+    }
+
+    Some(detect.unwrap().language().to_string())
 }

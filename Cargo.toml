@@ -16,4 +16,4 @@ once_cell = { version = "1.18.0", features = [] }
 strum = "0.25"
 strum_macros = { version = "0.25", features = [] }
 line-numbers = "0.2.2"
-syntect = "5.1.0"
+hyperpolyglot = { version = "0.1.7", git = "https://github.com/0x736E/hyperpolyglot.git", branch = "detect_with_str" }

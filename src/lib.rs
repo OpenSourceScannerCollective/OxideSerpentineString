@@ -9,7 +9,8 @@ fn oxide_serpentine_string(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<language::ParseMatchType>()?;
     m.add_class::<language::MatchPos>()?;
     m.add_class::<language::ProgrammingLanguage>()?;
-    m.add_function(wrap_pyfunction!(language::parse_with_enum, m)?)?;
+    m.add_function(wrap_pyfunction!(language::parse_with_lang_enum, m)?)?;
+    m.add_function(wrap_pyfunction!(language::parse_with_lang_str, m)?)?;
     m.add_function(wrap_pyfunction!(language::parse, m)?)?;
     m.add_class::<patterns::RegexMatch>()?;
     m.add_class::<patterns::RegexMatchCollection>()?;
