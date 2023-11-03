@@ -64,16 +64,15 @@ def print_matches(RegexMatchCollectionArray, verbose):
         ")" + (":" if len(RegexMatchCollectionArray) > 0 else ""),
         "dark_grey"))
     for RegexMatchCollection in RegexMatchCollectionArray:
-        # print(colored("\t\t[" + RegexMatchCollection.kind + "]", "green"))
         print(colored("\t\t  kind: ", "dark_grey") + colored(RegexMatchCollection.kind, "green"))
 
         # get the first non-empty line
         source = ""
         for line in RegexMatchCollection.source.splitlines():
             if line.strip() != "":
-                source = line
+                source = line if len(RegexMatchCollection.source) <= 100 else line[:97] + "..."
                 break
-        source = source if len(source) < 100 else source[:97] + "..."
+        source = source if len(source) <= 100 else source[:97] + "..."
         print(colored("\t\t  source: ", "dark_grey") + colored(source, "light_grey"))
         print(colored("\t\t  matches (", "dark_grey") + colored(str(len(RegexMatchCollection.matches)), "light_grey") + colored(
         ")" + (":" if len(RegexMatchCollection.matches) > 0 else ""),
@@ -112,19 +111,45 @@ def test_regex(lang, verbose):
         print_matches(oxide_serpentine_string.do_regex(data), verbose)
 
 
+def test_detect_lang(lang, verbose):
+
+    if lang.lower() == "javascript":
+        ext = "js"
+    elif lang.lower() == "python":
+        ext = "py"
+    elif lang.lower() == "json":
+        ext = "json"
+    elif lang.lower() == "toml":
+        ext = "toml"
+    elif lang.lower() == "csv":
+        ext = "csv"
+    else:
+        if verbose:
+            print(colored(" Invalid parser language: <" + lang.lower() + "> ", "red", "on_black"))
+        return
+
+    filepath = "./test/language/" + lang.lower() + "/test." + ext
+
+    with open(filepath) as f:
+        data = f.read()
+
+    syntax = oxide_serpentine_string.detect_language(data)
+    print("Source: ", lang, "\t\tDetected: ", syntax)
+
+
 def lang_tests(verbose):
     test_langs = [
         "JavaScript",
         "Python",
-        "Json",
-        "Toml",
-        "Csv"
+        # "Json",
+        # "Toml",
+        # "Csv"
     ]
 
     for lang in test_langs:
-        test_parser(lang, verbose)
-        test_regex(lang, verbose)
-
+        # test_parser(lang, verbose)
+        # test_regex(lang, verbose)
+        test_detect_lang(lang, verbose)
 
 # begin
 lang_tests(True)

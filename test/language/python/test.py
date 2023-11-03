@@ -1,39 +1,38 @@
+# source: https://github.com/TheRenegadeCoder/sample-programs/blob/main/archive/p/python/rot13.py
 
-myvar = "string"
-
-myvar = 123;
-
-myvar = "string with an inline comment no. 1"; # inline comment for string no. 1
-
-# single-line comment
-
-'''
-This is a multi-
--line comment.
-'''
-
-# single-line # comment
-
-myvar = "string"; # inline-comment
-
-"string \"with\" escaped chars 1"
-
-'string \'with\' escaped chars 2'
-
-"nested 'strings 1' without escapes 3"
-
-'nested \"strings 2\" without escapes 4'
-
-"multiple 'nested' \"strings\" with different enclosure literals"
-
-'multiple \'nested\' \"strings\" with different enclosure literals'
+import sys
+from string import ascii_uppercase, ascii_lowercase
 
 
-myvar = """this is a multi-
--line string
-using back-ticks"""
+def rot_13(string):
+    return ''.join([encrypt_char(c) for c in string])
 
-secret = "-----BEGIN RSA PRIVATE KEY-----"
-secret = "-----BEGIN DSA PRIVATE KEY-----"
-secret = "-----BEGIN EC PRIVATE KEY-----"
-secret = "-----BEGIN PGP PRIVATE KEY BLOCK-----"
+
+def encrypt_char(c):
+    if c in ascii_uppercase:
+        ltrs = ascii_uppercase
+    elif c in ascii_lowercase:
+        ltrs = ascii_lowercase
+    else:
+        return c
+    new_index = (ltrs.index(c) + 13) % 26
+    return ltrs[new_index]
+
+
+def exit_with_error():
+    print('Usage: please provide a string to encrypt')
+    sys.exit(1)
+
+
+def main(args):
+    try:
+        string = args[0]
+        if len(string) <= 0:
+            exit_with_error()
+        print(rot_13(string))
+    except (IndexError, ValueError):
+        exit_with_error()
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])

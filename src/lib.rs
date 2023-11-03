@@ -14,5 +14,6 @@ fn oxide_serpentine_string(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<patterns::RegexMatch>()?;
     m.add_class::<patterns::RegexMatchCollection>()?;
     m.add_function(wrap_pyfunction!(patterns::py_do_regex, m)?)?;
+    m.add_function(wrap_pyfunction!(language::detect_language, m)?)?;
     Ok(())
 }

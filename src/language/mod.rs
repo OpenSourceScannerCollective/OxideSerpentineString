@@ -4,11 +4,16 @@ pub(crate) mod json;
 pub(crate) mod toml;
 pub(crate) mod csv;
 
+use std::path::Path;
 use std::str::FromStr;
 use pest::Span;
 use pyo3::{pyclass, pyfunction, PyResult, Python, PyObject, IntoPy};
 use strum_macros::{Display, EnumString};
 use crate::patterns::{do_regex, RegexMatchCollection};
+
+extern crate syntect;
+use syntect::parsing::{SyntaxReference, SyntaxSet};
+use syntect::util::LinesWithEndings;
 
 #[pyclass(get_all)]
 #[derive(Clone, Copy, EnumString, Display )]
@@ -89,6 +94,10 @@ pub enum ParseMatchType {
 #[pyfunction]
 pub fn parse_with_enum(py: Python<'_>, str_input: &str, lang: ProgrammingLanguage) -> PyResult<PyObject> {
 
+    let detect_lang = detect_language(str_input, None);
+
+    println!("Detected language: {:?}", detect_lang);
+
     let tokens = match lang {
         ProgrammingLanguage::JavaScript => javascript::parse(str_input),
         ProgrammingLanguage::Python => python::parse(str_input),
@@ -107,4 +116,30 @@ pub fn parse(py: Python<'_>, str_input: &str, str_lang: &str) -> PyResult<PyObje
         Err(err) => panic!("Problem parsing string: {:?}", err),
     };
     return parse_with_enum(py, str_input, lang);
+}
+
+#[pyfunction]
+pub fn detect_language(input_str: &str, file_path: Option<&str>) -> Option<String> {
+
+    let syntax_set = SyntaxSet::load_defaults_newlines();
+    let mut syntax_ref: Option<&SyntaxReference>;
+
+    if file_path.is_some() {
+        let path: &Path = Path::new(file_path.unwrap());
+        let file_ext = path.extension().and_then(|x| x.to_str()).unwrap_or("");
+        syntax_ref = syntax_set.find_syntax_by_extension(file_ext);
+        if syntax_ref.is_some() {
+            return Some(syntax_ref.unwrap().name.to_string());
+        }
+    }
+
+    for line in LinesWithEndings::from(input_str) {
+        syntax_ref = syntax_set.find_syntax_by_first_line(line);
+        if !syntax_ref.is_none() {
+            return Some(syntax_ref.unwrap().name.to_string());
+        }
+    }
+
+    // If no language is detected, return plaintext
+    Some(syntax_set.find_syntax_plain_text().name.to_string())
 }
