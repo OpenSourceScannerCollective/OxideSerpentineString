@@ -4,69 +4,88 @@ import re
 import oxide_serpentine_string
 from termcolor import colored, cprint
 
-def parser(lang, verbose):
-    if lang.lower() == "javascript":
-        filepath = "./test/language/javascript/test.js"
-    elif lang.lower() == "python":
-        filepath = "./test/language/python/test.py"
-    elif lang.lower() == "json":
-        filepath = "./test/language/json/test.json"
-    elif lang.lower() == "toml":
-        filepath = "./test/language/toml/test.toml"
-    elif lang.lower() == "csv":
-        filepath = "./test/language/csv/test.csv"
-    else:
-        if verbose:
-            print(colored(" Invalid parser language: <" + lang.lower() + "> ", "red", "on_black"))
-        return
+PRINT_VERBOSE = True
+MAX_PRINT_ARRAY_SIZE = 100
+ONLY_SHOW_RESULTS = True
+
+
+def parser(filepath, lang, verbose):
 
     with open(filepath) as f:
         data = f.read()
 
-    if verbose:
-        print(colored(" # TEST PARSER: ", "white", "on_red") +
-              colored(lang.upper(), "blue", "on_red") +
-              colored(" # ", "white", "on_red"))
+    print(colored(" # TEST PARSER: ", "white", "on_red") +
+          colored(lang.upper(), "blue", "on_red") +
+          colored(" # ", "white", "on_red"))
+
     try:
         results = oxide_serpentine_string.parse_with_lang_str(data, lang)
     except:
         print("Unable to parse input for: " + lang)
         results = []
 
-    if verbose:
-        for index, res in enumerate(results):
-            print(colored("\nMatch [", "dark_grey") + colored(str(index), "light_grey"), end="")
-            print(colored("] of (" + str(len(results)) + ")", "dark_grey"))
+    print_ParseResults(results, verbose)
 
-            if res.kind == oxide_serpentine_string.ParseMatchType.StringLiteral:
-                kind = "string"
-            elif res.kind == oxide_serpentine_string.ParseMatchType.Comment:
-                kind = "comment"
-            else:
-                kind = "unknown"
-            print(colored("\tkind: ", "dark_grey") + colored("<" + kind + ">", "light_grey"))
-
-            res_value = res.value if len(res.value) < 100 else res.value[:97] + "..."
-            print(colored("\tvalue:", "dark_grey"), colored(res_value, "light_grey"))
-            print(colored("\traw:", "dark_grey"), colored(res.raw, "light_grey"))
-            print(colored("\tposition =>", "dark_grey"))
-            print(colored("\t\t  char.start: ", "dark_grey") + colored(res.position.char.start, "light_grey"))
-            print(colored("\t\t  char.end: ", "dark_grey") + colored(res.position.char.end, "light_grey"))
-            print(colored("\t\t  line.start: ", "dark_grey") + colored(res.position.line.start, "light_grey"))
-            print(colored("\t\t  line.end: ", "dark_grey") + colored(res.position.line.end, "light_grey"))
-            if len(res.matches) > 0:
-                print_matches(res.matches, verbose)
-
-
-def print_matches(RegexMatchCollectionArray, verbose):
+def print_ParseResults(results, verbose=True):
     if not verbose:
         return
 
-    print(colored("\tmatches (", "dark_grey") + colored(str(len(RegexMatchCollectionArray)), "light_grey") + colored(
-        ")" + (":" if len(RegexMatchCollectionArray) > 0 else ""),
-        "dark_grey"))
+    for index, res in enumerate(results):
+        if ONLY_SHOW_RESULTS and len(res.matches) < 1:
+            continue
+
+        print(colored("\nExtract [", "dark_grey") +
+              colored(str(index + 1), "light_grey") +
+              colored("] of [", "dark_grey") +
+              colored(str(len(results)), "light_grey") +
+              colored("]", "dark_grey"))
+
+        if res.kind == oxide_serpentine_string.ParseMatchType.StringLiteral:
+            kind = "string"
+        elif res.kind == oxide_serpentine_string.ParseMatchType.Comment:
+            kind = "comment"
+        else:
+            kind = "unknown"
+        print(colored("\tkind: ", "dark_grey") + colored("<" + kind + ">", "light_grey"))
+        res_value = res.value if len(res.value) < 100 else res.value[:97] + "..."
+        print(colored("\tvalue:", "dark_grey"), colored(res_value, "light_grey"))
+        print(colored("\traw:", "dark_grey"), colored(res.raw, "light_grey"))
+        print_MatchPos(res.position, "\t", "position", verbose)
+        print_RegexMatchCollectionArray(res.matches, verbose)
+
+
+def print_MatchPos(MatchPos, prefix="", head_prefix="position", verbose=True):
+    print(colored(prefix + head_prefix + " =>", "dark_grey") + "\n" +
+          colored(prefix + "\t  char.start: ", "dark_grey") +
+          colored(MatchPos.char.start, "light_grey") + "\n" +
+          colored(prefix + "\t  char.end: ", "dark_grey") +
+          colored(MatchPos.char.end, "light_grey") +  "\n" +
+          colored(prefix + "\t  line.start: ", "dark_grey") +
+          colored(MatchPos.line.start, "light_grey") + "\n" +
+          colored(prefix + "\t  line.end: ", "dark_grey") +
+          colored(MatchPos.line.end, "light_grey"))
+
+
+def print_RegexMatchCollectionArray(RegexMatchCollectionArray, verbose=True):
+
+    if not verbose:
+        return
+
+    if ONLY_SHOW_RESULTS and len(RegexMatchCollectionArray) < 1:
+        return
+
+    print(colored("\tpattern_matches (", "dark_grey") +
+          colored(str(len(RegexMatchCollectionArray)), "light_grey") +
+          colored(")" + (":" if len(RegexMatchCollectionArray) > 0 else ""), "dark_grey"))
+
+    if len(RegexMatchCollectionArray) < 1:
+        return
+
+    RegexMatchCollectionArray = RegexMatchCollectionArray[:MAX_PRINT_ARRAY_SIZE]
+
     for RegexMatchCollection in RegexMatchCollectionArray:
-        print(colored("\t\t  kind: ", "dark_grey") + colored(RegexMatchCollection.kind, "green"))
+        print(colored("\t\tkind: ", "dark_grey") +
+              colored(RegexMatchCollection.kind, "green"))
 
         # get the first non-empty line
         source = ""
@@ -75,32 +94,39 @@ def print_matches(RegexMatchCollectionArray, verbose):
                 source = line if len(RegexMatchCollection.source) <= 100 else line[:97] + "..."
                 break
         source = source if len(source) <= 100 else source[:97] + "..."
-        print(colored("\t\t  source: ", "dark_grey") + colored(source, "light_grey"))
-        print(colored("\t\t  matches (", "dark_grey") + colored(str(len(RegexMatchCollection.matches)),
-                                                                "light_grey") + colored(
-            ")" + (":" if len(RegexMatchCollection.matches) > 0 else ""),
-            "dark_grey"))
-        for index, RegexMatch in enumerate(RegexMatchCollection.matches):
-            print(colored("\t\t\t[", "dark_grey") + colored(str(index), "light_grey") + colored("]", "dark_grey"))
-            print(colored("\t\t\t  value: ", "dark_grey") + colored(RegexMatch.value, "light_grey"))
-            print(colored("\t\t\t  position => ", "dark_grey"))
-            print(
-                colored("\t\t\t\t  char.start: ", "dark_grey") + colored(RegexMatch.position.char.start, "light_grey"))
-            print(colored("\t\t\t\t  char.end: ", "dark_grey") + colored(RegexMatch.position.char.end, "light_grey"))
-            print(
-                colored("\t\t\t\t  line.start: ", "dark_grey") + colored(RegexMatch.position.line.start, "light_grey"))
-            print(colored("\t\t\t\t  line.end: ", "dark_grey") + colored(RegexMatch.position.line.end, "light_grey"))
-            print(colored("\t\t\t  source_pos =>", "dark_grey"))
-            print(colored("\t\t\t\t  char.start: ", "dark_grey") + colored(RegexMatch.source_pos.char.start,
-                                                                           "light_grey"))
-            print(colored("\t\t\t\t  char.end: ", "dark_grey") + colored(RegexMatch.source_pos.char.end, "light_grey"))
-            print(colored("\t\t\t\t  line.start: ", "dark_grey") + colored(RegexMatch.source_pos.line.start,
-                                                                           "light_grey"))
-            print(colored("\t\t\t\t  line.end: ", "dark_grey") + colored(RegexMatch.source_pos.line.end, "light_grey"))
+        print(colored("\t\tsource: ", "dark_grey") +
+              colored(source, "light_grey"))
+        print(colored("\t\traw: ", "dark_grey") +
+              colored(RegexMatchCollection.raw, "light_grey"))
+        print_RegexMatchArray(RegexMatchCollection.matches, "\t\t")
 
 
-def regex(pattern, filepath, verbose):
+def print_RegexMatchArray(RegexMatchArray, prefix="", verbose=True):
+    if not verbose:
+        return
 
+    print(colored(prefix + "matches (", "dark_grey") +
+          colored(str(len(RegexMatchArray)), "light_grey") +
+          colored(")" + (":" if len(RegexMatchArray) > 0 else ""), "dark_grey"))
+
+    prefix = prefix + "\t"
+    RegexMatchArray = RegexMatchArray[:MAX_PRINT_ARRAY_SIZE]
+
+    for index, RegexMatch in enumerate(RegexMatchArray):
+        print(colored(prefix + "[", "dark_grey") +
+              colored(str(index), "light_grey") +
+              colored("]", "dark_grey"))
+        print_RegexMatch(RegexMatch, prefix, verbose)
+
+
+def print_RegexMatch(RegexMatch, prefix="", verbose=True):
+    print(colored(prefix + "value: ", "dark_grey") +
+          colored(RegexMatch.value, "light_grey"))
+    print_MatchPos(RegexMatch.position, prefix, "position", verbose)
+    print_MatchPos(RegexMatch.source_pos, prefix, "source_pos", verbose)
+
+
+def do_regex(pattern, filepath, verbose):
     try:
         with open(filepath) as f:
             data = f.read()
@@ -118,50 +144,44 @@ def regex(pattern, filepath, verbose):
               colored(")", "light_grey", "on_red") +
               colored(" # ", "white", "on_red"))
 
-        results = oxide_serpentine_string.do_regex(data)
+    results = oxide_serpentine_string.do_regex(data)
 
-        if len(results) < 1:
-            print("Matches: 0")
-        else:
-            for RegexMatchCollection in results:
-                print("Matches: ", str(len(RegexMatchCollection.matches)))
+    if verbose and len(results) < 1:
+        print("Matches: 0")
+        return
+
+    for RegexMatchCollection in results:
+        print_RegexMatchArray(RegexMatchCollection.matches, "", verbose)
 
 
 def detect_lang(lang, verbose):
-    if lang.lower() == "javascript":
-        ext = "js"
-    elif lang.lower() == "python":
-        ext = "py"
-    elif lang.lower() == "json":
-        ext = "json"
-    elif lang.lower() == "toml":
-        ext = "toml"
-    elif lang.lower() == "csv":
-        ext = "csv"
-    else:
-        if verbose:
-            print(colored(" Invalid parser language: <" + lang.lower() + "> ", "red", "on_black"))
-        return
 
-    if verbose:
-        print(colored(" # TEST LANG DETECT: ", "white", "on_red") +
-              colored(lang.upper(), "blue", "on_red") +
-              colored(" # ", "white", "on_red"))
+    def callback(fpath, fpattern, verb):
+        with open(fpath) as f:
+            data = f.read()
 
-    filepath = "./test/language/" + lang.lower() + "/test." + ext
+        for index, path in enumerate([fpath]):      # don't detect language by contents
+        # for index, path in enumerate([fpath, ""]):
+            detected_lang = oxide_serpentine_string.detect_lang(data, path)
+        #     detected_lang = oxide_serpentine_string.detect_lang_file(path)
+            path = "\"" + path + "\""
 
-    with open(filepath) as f:
-        data = f.read()
+            if not verb:
+                continue
 
-    for index, path in enumerate([filepath, ""]):
-        detected_lang = oxide_serpentine_string.detect_language(data, path)
-        path = "\"" + path + "\""
-        print(colored("With filepath: ", "dark_grey") + colored(path, "light_grey"))
-        print(colored("\tDetected: ", "dark_grey") + colored(detected_lang, "light_grey"))
+            print(colored("With filepath: ", "dark_grey") +
+                  colored(path, "light_grey"))
+            print(colored("\tDetected: ", "dark_grey") +
+                  colored(detected_lang, "light_grey"))
 
+    test_patterns = [
+        {"name": "FILE",
+         "pattern": re.compile(r".+\.[a-zA-Z0-9]+$")},
+    ]
+
+    process_test_files(test_patterns, callback, verbose)
 
 def test_detect_lang(verbose):
-
     test_langs = [
         "JavaScript",
         "Python",
@@ -176,20 +196,29 @@ def test_detect_lang(verbose):
 
 def lang_parser(verbose):
 
-    test_langs = [
-        "JavaScript",
-        "Python",
-        "Json",
-        "Toml",
-        "Csv"
+    test_patterns = [
+        {"name": "CSV",
+         "pattern": re.compile(r".+\.csv$")},
+        {"name": "JAVASCRIPT",
+         "pattern": re.compile(r".+\.js$")},
+        {"name": "JSON",
+         "pattern": re.compile(r".+\.json$")},
+        {"name": "PYTHON",
+         "pattern": re.compile(r".+\.py$")},
+        {"name": "TOML",
+         "pattern": re.compile(r".+\.toml$")},
     ]
 
-    for lang in test_langs:
-        parser(lang, verbose)
+    def callback(fpath, fpattern, verb):
+        filename = fpath.split("/")[-1]
+        if filename.lower() == 'expect.json':
+            return
+        parser(fpath, fpattern["name"], verbose)
+
+    process_test_files(test_patterns, test_lang_data, callback, verbose)
 
 
 def lang_regex(verbose):
-
     test_patterns = [
         {"name": "GOOGLE_API_KEY",
          "pattern": re.compile(r".+/Google_API_Key\.[a-z]+$")},
@@ -207,12 +236,18 @@ def lang_regex(verbose):
          "pattern": re.compile(r".+/PEM_RSA_(512|1024|2048|3072|4096)\.[a-z]+$")}
     ]
 
-    for test_path in test_data:
+    def callback(fpath, fpattern, verb):
+        do_regex(fpattern['name'], fpath, verb)
+
+    process_test_files(test_patterns, test_data, callback, verbose)
+
+
+def process_test_files(test_patterns, data, callback, verbose):
+    for test_path in data:
         for file_path in test_path['paths']:
             for file_pattern in test_patterns:
-                match = file_pattern["pattern"].match(file_path)
-                if match:
-                    regex(file_pattern['name'], file_path, verbose)
+                if file_pattern["pattern"].match(file_path):
+                    callback(file_path, file_pattern, verbose)
 
 
 def get_directories_with_files(path, root_path, valid_extensions=None):
@@ -251,15 +286,15 @@ def get_directories_with_files(path, root_path, valid_extensions=None):
     return directories
 
 
-def load_test_data():
-    root_path_to_scan = './test/data'
-    valid_exts = ['.json', '.xml', '.yaml', '.txt']
-    global test_data
-    test_data = get_directories_with_files(root_path_to_scan, root_path_to_scan, valid_exts)
-
-
 # begin
-load_test_data()
-test_detect_lang(True)
-lang_parser(True)
-lang_regex(True)
+global test_data
+test_valid_exts = ['.json', '.xml', '.yaml', '.txt']
+test_data = get_directories_with_files('./test/data/', './test/data/', test_valid_exts)
+
+global test_lang_data
+lang_valid_exts = ['.js', '.py', '.toml', '.csv', '.json']
+test_lang_data = get_directories_with_files('./test/language/', './test/language/', lang_valid_exts)
+
+# test_detect_lang(PRINT_VERBOSE)
+lang_parser(PRINT_VERBOSE)
+# lang_regex(PRINT_VERBOSE)

@@ -6,5 +6,6 @@
   "object": {
     "object->member1": "string value 4",
     "object->member2": 456
-  }
+  },
+  "password": "-----BEGIN PGP PRIVATE KEY BLOCK-----"
 }

@@ -4,6 +4,7 @@ title = "TOML Example"
 
 [owner]
 name = "Tom Preston-Werner"
+password = "-----BEGIN RSA PRIVATE KEY-----"
 dob = 1979-05-27T07:32:00-08:00
 
 [database]
@@ -17,6 +18,7 @@ temp_targets = { cpu = 79.5, case = 72.0 }
 [servers.alpha]
 ip = "10.0.0.1"
 role = "frontend"
+google_api_key = "AIzar926ecHG0d5d7zPiFZWkYHTlik0YyyED_oi"
 
 [servers.beta]
 ip = "10.0.0.2"

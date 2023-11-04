@@ -121,7 +121,7 @@ pub fn parse_with_lang_str(py: Python<'_>, str_input: &str, str_lang: &str) -> P
 #[pyfunction]
 pub fn parse(py: Python<'_>, str_input: &str, file_path: &str) -> PyResult<PyObject> {
 
-    let str_lang = detect_language(str_input, file_path);
+    let str_lang = detect_lang_str(str_input, file_path);
 
     if str_lang.is_none() {
         return Err(PyValueError::new_err("Unable to detect language"))
@@ -135,9 +135,27 @@ pub fn parse(py: Python<'_>, str_input: &str, file_path: &str) -> PyResult<PyObj
 }
 
 #[pyfunction]
-pub fn detect_language(input_str: &str, file_path: &str) -> Option<String> {
+#[pyo3(name = "detect_lang")]
+pub fn detect_lang_str(input_str: &str, file_path: &str) -> Option<String> {
 
     let lang_res = hyperpolyglot::detect_with_str(Path::new(file_path), input_str);
+
+    if lang_res.is_err() {
+        return Some("Unknown".to_string());
+    }
+
+    let detect = lang_res.unwrap();
+    if detect.is_none() {
+        return Some("Unknown".to_string());
+    }
+
+    Some(detect.unwrap().language().to_string())
+}
+
+#[pyfunction]
+pub fn detect_lang_file(file_path: &str) -> Option<String> {
+
+    let lang_res = hyperpolyglot::detect(file_path.as_ref());
 
     if lang_res.is_err() {
         return Some("Unknown".to_string());
