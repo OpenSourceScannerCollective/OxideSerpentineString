@@ -187,7 +187,7 @@ def detect_lang(lang, verbose):
          "pattern": re.compile(r".+\.[a-zA-Z0-9]+$")},
     ]
 
-    process_test_files(test_patterns, callback, verbose)
+    process_test_files(test_patterns, test_lang_data, callback, verbose)
 
 
 def test_detect_lang(verbose):
@@ -311,10 +311,10 @@ def set_log_verbosity(verb='DEBUG'):
 
     if verb == 'DEBUG' or verb == 'DEFAULT' or verb == '':
         PRINT_VERBOSE = True
-        MAX_STRING_LENGTH = 1000
-        MAX_PRINT_ARRAY_SIZE = 1000
+        MAX_STRING_LENGTH = 200
+        MAX_PRINT_ARRAY_SIZE = 5
         ONLY_SHOW_RESULTS = False
-        SHOW_POS_INFO = True
+        SHOW_POS_INFO = False
         SHOW_RAW = True
         TRUNCATE_VALUES = True
     elif verb == 'DEBUG_EX':
@@ -378,6 +378,6 @@ global test_lang_data
 lang_valid_exts = ['.js', '.py', '.toml', '.csv', '.json']
 test_lang_data = get_directories_with_files('./test/language/', './test/language/', lang_valid_exts)
 
-# test_detect_lang(PRINT_VERBOSE)
+test_detect_lang(PRINT_VERBOSE)
 lang_parser(PRINT_VERBOSE)
-# lang_regex(PRINT_VERBOSE)
+lang_regex(PRINT_VERBOSE)
