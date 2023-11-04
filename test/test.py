@@ -304,6 +304,9 @@ def set_log_verbosity(verb='DEBUG'):
     global SHOW_RAW
     global TRUNCATE_VALUES
 
+    if os.environ.get('PRINT_VERB_LEVEL'):
+        verb = os.environ.get('PRINT_VERB_LEVEL')
+
     verb = verb.upper()
 
     if verb == 'DEBUG' or verb == 'DEFAULT' or verb == '':
@@ -346,7 +349,7 @@ def set_log_verbosity(verb='DEBUG'):
         SHOW_POS_INFO = True
         SHOW_RAW = True
         TRUNCATE_VALUES = True
-    else:  # SILENT
+    elif verb == 'SILENT':
         PRINT_VERBOSE = False
         MAX_STRING_LENGTH = 1
         MAX_PRINT_ARRAY_SIZE = 1
@@ -354,11 +357,19 @@ def set_log_verbosity(verb='DEBUG'):
         SHOW_POS_INFO = False
         SHOW_RAW = False
         TRUNCATE_VALUES = True
+    else:  # DEBUG
+        PRINT_VERBOSE = True
+        MAX_STRING_LENGTH = 1000
+        MAX_PRINT_ARRAY_SIZE = 1000
+        ONLY_SHOW_RESULTS = False
+        SHOW_POS_INFO = True
+        SHOW_RAW = True
+        TRUNCATE_VALUES = True
 
-
-set_log_verbosity('RESULTS_EX')
 
 # begin
+set_log_verbosity()
+
 global test_data
 test_valid_exts = ['.json', '.xml', '.yaml', '.txt']
 test_data = get_directories_with_files('./test/data/', './test/data/', test_valid_exts)
