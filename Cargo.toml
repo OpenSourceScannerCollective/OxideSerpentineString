@@ -19,3 +19,4 @@ line-numbers = "0.2.2"
 hyperpolyglot = { version = "0.1.7", git = "https://github.com/0x736E/hyperpolyglot.git", branch = "detect_with_str" }
 python3-dll-a = "0.2.9"
 pyo3-build-config = "0.20.0"
+snailquote = "0.3.1"

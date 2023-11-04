@@ -8,6 +8,7 @@ use {
     regex::Regex,
 };
 use crate::language::{MatchPos, MatchSpan};
+use snailquote::unescape as snail_unescape;
 
 
 // TODO:    1. procedural macro to create patterns at compile-time
@@ -19,13 +20,13 @@ pub fn get_patterns() -> HashMap<&'static str, &'static Lazy<Regex>> {
         Lazy load compiled regular expressions
      */
 
-    static RSA_PRIVATE_KEY: Lazy<Regex> = Lazy::new(|| Regex::new(r"(-----BEGIN RSA PRIVATE KEY-----)").unwrap());
+    static RSA_PRIVATE_KEY: Lazy<Regex> = Lazy::new(|| Regex::new(r#"(-----BEGIN RSA PRIVATE KEY-----)"#).unwrap());
     static SSH_DSA_PRIVATE_KEY: Lazy<Regex> = Lazy::new(|| Regex::new(r"(-----BEGIN DSA PRIVATE KEY-----)").unwrap());
-    static EC_PRIVATE_KEY: Lazy<Regex> = Lazy::new(|| Regex::new(r"(-----BEGIN EC PRIVATE KEY-----)").unwrap());
-    static PGP_PRIVATE_KEY: Lazy<Regex> = Lazy::new(|| Regex::new(r"(-----BEGIN PGP PRIVATE KEY BLOCK-----)").unwrap());
-    static GOOGLE_API_KEY: Lazy<Regex> = Lazy::new(|| Regex::new(r"(AIza[0-9A-Za-z\\-_]{35})").unwrap());
-    static GOOGLE_OAUTH_TOKEN: Lazy<Regex> = Lazy::new(|| Regex::new(r"(ya29\\.[0-9A-Za-z\\-_]+)").unwrap());
-    static GOOGLE_SERVICE_ACCOUNT: Lazy<Regex> = Lazy::new(|| Regex::new("(\"type\": \"service_account\")").unwrap());
+    static EC_PRIVATE_KEY: Lazy<Regex> = Lazy::new(|| Regex::new(r#"(-----BEGIN EC PRIVATE KEY-----)"#).unwrap());
+    static PGP_PRIVATE_KEY: Lazy<Regex> = Lazy::new(|| Regex::new(r#"(-----BEGIN PGP PRIVATE KEY BLOCK-----)"#).unwrap());
+    static GOOGLE_API_KEY: Lazy<Regex> = Lazy::new(|| Regex::new(r#"(AIza[0-9A-Za-z\-_]{35})"#).unwrap());
+    static GOOGLE_OAUTH_TOKEN: Lazy<Regex> = Lazy::new(|| Regex::new(r#"(ya29\.[0-9A-Za-z\-_]+)"#).unwrap());
+    static GOOGLE_SERVICE_ACCOUNT: Lazy<Regex> = Lazy::new(|| Regex::new(r#"("type": "service_account")"#).unwrap());
 
     let re_patterns:HashMap<&'static str, &'static Lazy<Regex>> = HashMap::from([
         ("RSA private key", &RSA_PRIVATE_KEY),
@@ -45,6 +46,7 @@ pub fn get_patterns() -> HashMap<&'static str, &'static Lazy<Regex>> {
 pub struct RegexMatchCollection {
     pub kind: String,
     pub source: String,
+    pub raw: String,
     pub matches: Vec<RegexMatch>
 }
 
@@ -56,7 +58,7 @@ pub struct RegexMatch {
     pub source_pos: MatchPos
 }
 
-pub fn do_regex(str_input: &str, source_pos: Option<MatchPos>) -> Vec<RegexMatchCollection> {
+pub fn do_regex(str_input: &str, source_pos: Option<MatchPos>, disable_unescape: Option<bool>) -> Vec<RegexMatchCollection> {
 
     let mut re_results: Vec<RegexMatchCollection> = Vec::new();
     let source_position = match source_pos {
@@ -64,14 +66,20 @@ pub fn do_regex(str_input: &str, source_pos: Option<MatchPos>) -> Vec<RegexMatch
         _=> source_pos.clone().unwrap()
     };
 
-    let source = str_input;
+    let unescaped_str;
+    if disable_unescape.is_some() && disable_unescape.unwrap() == true {
+        unescaped_str = snail_unescape(str_input).unwrap();
+    } else {
+        unescaped_str = str_input.to_string();
+    }
+
     for (key, pattern) in get_patterns() {
 
         let mut re_matches:Vec<RegexMatch> = Vec::new();
         let mut cap_match: Match;
         let line_positions = LinePositions::from(str_input);
 
-        for cap in pattern.captures_iter(str_input) {
+        for cap in pattern.captures_iter(unescaped_str.as_str()) {
             cap_match = cap.get(0).unwrap();
             re_matches.push(RegexMatch {
                 value: cap_match.as_str().to_string(),
@@ -101,7 +109,8 @@ pub fn do_regex(str_input: &str, source_pos: Option<MatchPos>) -> Vec<RegexMatch
         if re_matches.len() > 0 {
             re_results.push(RegexMatchCollection {
                 kind: key.to_string(),
-                source: source.to_string(),
+                source: unescaped_str.clone(),
+                raw: str_input.to_string(),
                 matches: re_matches,
             });
         }
@@ -113,5 +122,5 @@ pub fn do_regex(str_input: &str, source_pos: Option<MatchPos>) -> Vec<RegexMatch
 #[pyfunction]
 #[pyo3(name = "do_regex")]
 pub fn py_do_regex(py: Python<'_>, str_input: &str, source_pos: Option<MatchPos>) -> PyResult<PyObject> {
-    Ok(do_regex(str_input, source_pos).into_py(py))
+    Ok(do_regex(str_input, source_pos, Option::Some(true)).into_py(py))
 }

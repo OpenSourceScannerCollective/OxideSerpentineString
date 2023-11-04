@@ -11,6 +11,7 @@ use pyo3::{pyclass, pyfunction, PyResult, Python, PyObject, IntoPy};
 use pyo3::exceptions::PyValueError;
 use strum_macros::{Display, EnumString};
 use crate::patterns::{do_regex, RegexMatchCollection};
+use snailquote::unescape as snail_unescape;
 
 #[pyclass(get_all)]
 #[derive(Clone, Copy, EnumString, Display )]
@@ -53,12 +54,15 @@ impl ParseMatch {
                 end: inner_span.end_pos().line_col().0
             },
         };
+
+        let str_value = snail_unescape(value_str).unwrap();
+
         let p_match = ParseMatch {
             kind: rule_str,
-            value: value_str.to_string(),
+            value: str_value.to_owned(),
             raw: raw_str.to_string(),
             position: source_pos.clone(),
-            matches: do_regex(value_str, Some(source_pos)).into()
+            matches: do_regex(str_value.as_str(), Some(source_pos), Option::Some(true)).into()
         };
 
         return p_match;

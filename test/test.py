@@ -1,10 +1,10 @@
-import inspect
+import os
+import re
 
 import oxide_serpentine_string
 from termcolor import colored, cprint
 
-
-def test_parser(lang, verbose):
+def parser(lang, verbose):
     if lang.lower() == "javascript":
         filepath = "./test/language/javascript/test.js"
     elif lang.lower() == "python":
@@ -99,25 +99,35 @@ def print_matches(RegexMatchCollectionArray, verbose):
             print(colored("\t\t\t\t  line.end: ", "dark_grey") + colored(RegexMatch.source_pos.line.end, "light_grey"))
 
 
-def test_regex(lang, verbose):
-    if lang.lower() == "javascript":
-        filepath = "./test/patterns/javascript/test.js"
-    else:
-        print(colored(" Invalid regex language: <" + lang.lower() + "> ", "red", "on_black"))
+def regex(pattern, filepath, verbose):
+
+    try:
+        with open(filepath) as f:
+            data = f.read()
+    except IOError:
+        print(colored(" Invalid regex pattern: <" + pattern + "> ", "red", "on_black"))
         return
 
-    with open(filepath) as f:
-        data = f.read()
+    file_ext = os.path.splitext(filepath)[1][1:]
 
     if verbose:
         print(colored(" # TEST REGEX: ", "white", "on_red") +
-              colored(lang.upper(), "blue", "on_red") +
+              colored(pattern.upper(), "blue", "on_red") +
+              colored(" (", "light_grey", "on_red") +
+              colored(file_ext.upper(), "cyan", "on_red") +
+              colored(")", "light_grey", "on_red") +
               colored(" # ", "white", "on_red"))
 
-        print_matches(oxide_serpentine_string.do_regex(data), verbose)
+        results = oxide_serpentine_string.do_regex(data)
+
+        if len(results) < 1:
+            print("Matches: 0")
+        else:
+            for RegexMatchCollection in results:
+                print("Matches: ", str(len(RegexMatchCollection.matches)))
 
 
-def test_detect_lang(lang, verbose):
+def detect_lang(lang, verbose):
     if lang.lower() == "javascript":
         ext = "js"
     elif lang.lower() == "python":
@@ -150,7 +160,8 @@ def test_detect_lang(lang, verbose):
         print(colored("\tDetected: ", "dark_grey") + colored(detected_lang, "light_grey"))
 
 
-def lang_tests(verbose):
+def test_detect_lang(verbose):
+
     test_langs = [
         "JavaScript",
         "Python",
@@ -160,10 +171,95 @@ def lang_tests(verbose):
     ]
 
     for lang in test_langs:
-        test_parser(lang, verbose)
-        test_regex(lang, verbose)
-        test_detect_lang(lang, verbose)
+        detect_lang(lang, verbose)
+
+
+def lang_parser(verbose):
+
+    test_langs = [
+        "JavaScript",
+        "Python",
+        "Json",
+        "Toml",
+        "Csv"
+    ]
+
+    for lang in test_langs:
+        parser(lang, verbose)
+
+
+def lang_regex(verbose):
+
+    test_patterns = [
+        {"name": "GOOGLE_API_KEY",
+         "pattern": re.compile(r".+/Google_API_Key\.[a-z]+$")},
+        {"name": "GOOGLE_SERVICE_ACCOUNT",
+         "pattern": re.compile(r".+/Google_GCP_Service_account\.[a-z]+$")},
+        {"name": "GOOGLE_OAUTH_TOKEN",
+         "pattern": re.compile(r".+/Google_OAuth_Access_Token\.[a-z]+$")},
+        {"name": "SSH_DSA_PRIVATE_KEY",
+         "pattern": re.compile(r".+/PEM_DSA_(1024|2048|4096)\.[a-z]+$")},
+        {"name": "EC_PRIVATE_KEY",
+         "pattern": re.compile(r".+/PEM_EC_(256|384|521)\.[a-z]+$")},
+        {"name": "PGP_PRIVATE_KEY",
+         "pattern": re.compile(r".+/PEM_PGP\.[a-z]+$")},
+        {"name": "RSA_PRIVATE_KEY",
+         "pattern": re.compile(r".+/PEM_RSA_(512|1024|2048|3072|4096)\.[a-z]+$")}
+    ]
+
+    for test_path in test_data:
+        for file_path in test_path['paths']:
+            for file_pattern in test_patterns:
+                match = file_pattern["pattern"].match(file_path)
+                if match:
+                    regex(file_pattern['name'], file_path, verbose)
+
+
+def get_directories_with_files(path, root_path, valid_extensions=None):
+    directories = []
+    # Normalize the valid extensions to ensure consistency
+    if valid_extensions is not None:
+        valid_extensions = [ext.lower() for ext in valid_extensions]
+
+    # Strip the root path from the current path
+    relative_path = os.path.relpath(path, root_path)
+
+    # If we're at the root directory, relative path would be ".", so we keep it an empty string
+    if relative_path == ".":
+        relative_path = ""
+
+    # List to store file paths for the current directory
+    file_paths = []
+
+    # Loop through the contents of the directory
+    for entry in os.scandir(path):
+        if entry.is_dir(follow_symlinks=False):
+            # Recursively get directories and files from the current directory
+            directories.extend(get_directories_with_files(entry.path, root_path, valid_extensions))
+        else:
+            # Check if the file has a valid extension before adding it to the list
+            if valid_extensions is None or os.path.splitext(entry.name)[1].lower() in valid_extensions:
+                file_paths.append(entry.path)
+
+    # Only add the directory object if it contains files
+    if file_paths:
+        directories.append({
+            "name": relative_path.replace("\\", "/"),  # Normalize to use forward slashes
+            "paths": file_paths
+        })
+
+    return directories
+
+
+def load_test_data():
+    root_path_to_scan = './test/data'
+    valid_exts = ['.json', '.xml', '.yaml', '.txt']
+    global test_data
+    test_data = get_directories_with_files(root_path_to_scan, root_path_to_scan, valid_exts)
 
 
 # begin
-lang_tests(True)
+load_test_data()
+test_detect_lang(True)
+lang_parser(True)
+lang_regex(True)
