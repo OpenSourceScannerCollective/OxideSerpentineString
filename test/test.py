@@ -1,22 +1,16 @@
 import os
 import re
-
 import oxide_serpentine_string
 from termcolor import colored, cprint
 
-PRINT_VERBOSE = True
-MAX_PRINT_ARRAY_SIZE = 100
-ONLY_SHOW_RESULTS = True
-
-
 def parser(filepath, lang, verbose):
-
     with open(filepath) as f:
         data = f.read()
 
-    print(colored(" # TEST PARSER: ", "white", "on_red") +
-          colored(lang.upper(), "blue", "on_red") +
-          colored(" # ", "white", "on_red"))
+    if verbose:
+        print(colored(" # TEST PARSER: ", "white", "on_red") +
+              colored(lang.upper(), "blue", "on_red") +
+              colored(" # ", "white", "on_red"))
 
     try:
         results = oxide_serpentine_string.parse_with_lang_str(data, lang)
@@ -25,6 +19,7 @@ def parser(filepath, lang, verbose):
         results = []
 
     print_ParseResults(results, verbose)
+
 
 def print_ParseResults(results, verbose=True):
     if not verbose:
@@ -41,25 +36,39 @@ def print_ParseResults(results, verbose=True):
               colored("]", "dark_grey"))
 
         if res.kind == oxide_serpentine_string.ParseMatchType.StringLiteral:
-            kind = "string"
+            kind = colored("<string>", "yellow")
         elif res.kind == oxide_serpentine_string.ParseMatchType.Comment:
-            kind = "comment"
+            kind = colored("<comment>", "magenta")
         else:
-            kind = "unknown"
-        print(colored("\tkind: ", "dark_grey") + colored("<" + kind + ">", "light_grey"))
-        res_value = res.value if len(res.value) < 100 else res.value[:97] + "..."
-        print(colored("\tvalue:", "dark_grey"), colored(res_value, "light_grey"))
-        print(colored("\traw:", "dark_grey"), colored(res.raw, "light_grey"))
+            kind = colored("<unknown>", "red")
+        print(colored("\tkind: ", "dark_grey") + kind)
+        print(colored("\tvalue:", "dark_grey") +
+              colored(trunc_str(res.value), "light_grey"))
+        if SHOW_RAW:
+            print(colored("\traw:", "dark_grey"), colored(trunc_str(res.raw), "light_grey"))
         print_MatchPos(res.position, "\t", "position", verbose)
         print_RegexMatchCollectionArray(res.matches, verbose)
 
 
+def trunc_str(input_str, postfix=" (cont)"):
+    if not TRUNCATE_VALUES:
+        return input_str
+
+    if len(input_str) < MAX_STRING_LENGTH:
+        input_str = input_str
+    else:
+        input_str = input_str[:(MAX_STRING_LENGTH - len(postfix))] + colored(" (cont.)", "dark_grey")
+    return input_str
+
+
 def print_MatchPos(MatchPos, prefix="", head_prefix="position", verbose=True):
+    if not SHOW_POS_INFO or not verbose:
+        return
     print(colored(prefix + head_prefix + " =>", "dark_grey") + "\n" +
           colored(prefix + "\t  char.start: ", "dark_grey") +
           colored(MatchPos.char.start, "light_grey") + "\n" +
           colored(prefix + "\t  char.end: ", "dark_grey") +
-          colored(MatchPos.char.end, "light_grey") +  "\n" +
+          colored(MatchPos.char.end, "light_grey") + "\n" +
           colored(prefix + "\t  line.start: ", "dark_grey") +
           colored(MatchPos.line.start, "light_grey") + "\n" +
           colored(prefix + "\t  line.end: ", "dark_grey") +
@@ -67,7 +76,6 @@ def print_MatchPos(MatchPos, prefix="", head_prefix="position", verbose=True):
 
 
 def print_RegexMatchCollectionArray(RegexMatchCollectionArray, verbose=True):
-
     if not verbose:
         return
 
@@ -85,19 +93,20 @@ def print_RegexMatchCollectionArray(RegexMatchCollectionArray, verbose=True):
 
     for RegexMatchCollection in RegexMatchCollectionArray:
         print(colored("\t\tkind: ", "dark_grey") +
-              colored(RegexMatchCollection.kind, "green"))
+              colored("[" + RegexMatchCollection.kind + "]", "green"))
 
         # get the first non-empty line
         source = ""
         for line in RegexMatchCollection.source.splitlines():
             if line.strip() != "":
-                source = line if len(RegexMatchCollection.source) <= 100 else line[:97] + "..."
+                source = line if len(RegexMatchCollection.source) < MAX_STRING_LENGTH else line
                 break
-        source = source if len(source) <= 100 else source[:97] + "..."
+        source = trunc_str(source)
         print(colored("\t\tsource: ", "dark_grey") +
               colored(source, "light_grey"))
-        print(colored("\t\traw: ", "dark_grey") +
-              colored(RegexMatchCollection.raw, "light_grey"))
+        if SHOW_RAW:
+            print(colored("\t\traw: ", "dark_grey") +
+                  colored(trunc_str(RegexMatchCollection.raw), "light_grey"))
         print_RegexMatchArray(RegexMatchCollection.matches, "\t\t")
 
 
@@ -121,7 +130,7 @@ def print_RegexMatchArray(RegexMatchArray, prefix="", verbose=True):
 
 def print_RegexMatch(RegexMatch, prefix="", verbose=True):
     print(colored(prefix + "value: ", "dark_grey") +
-          colored(RegexMatch.value, "light_grey"))
+          colored(trunc_str(RegexMatch.value), "cyan"))
     print_MatchPos(RegexMatch.position, prefix, "position", verbose)
     print_MatchPos(RegexMatch.source_pos, prefix, "source_pos", verbose)
 
@@ -155,15 +164,14 @@ def do_regex(pattern, filepath, verbose):
 
 
 def detect_lang(lang, verbose):
-
     def callback(fpath, fpattern, verb):
         with open(fpath) as f:
             data = f.read()
 
-        for index, path in enumerate([fpath]):      # don't detect language by contents
-        # for index, path in enumerate([fpath, ""]):
+        for index, path in enumerate([fpath]):  # don't detect language by contents
+            # for index, path in enumerate([fpath, ""]):
             detected_lang = oxide_serpentine_string.detect_lang(data, path)
-        #     detected_lang = oxide_serpentine_string.detect_lang_file(path)
+            #     detected_lang = oxide_serpentine_string.detect_lang_file(path)
             path = "\"" + path + "\""
 
             if not verb:
@@ -181,6 +189,7 @@ def detect_lang(lang, verbose):
 
     process_test_files(test_patterns, callback, verbose)
 
+
 def test_detect_lang(verbose):
     test_langs = [
         "JavaScript",
@@ -195,7 +204,6 @@ def test_detect_lang(verbose):
 
 
 def lang_parser(verbose):
-
     test_patterns = [
         {"name": "CSV",
          "pattern": re.compile(r".+\.csv$")},
@@ -285,6 +293,70 @@ def get_directories_with_files(path, root_path, valid_extensions=None):
 
     return directories
 
+
+def set_log_verbosity(verb='DEBUG'):
+
+    global PRINT_VERBOSE
+    global MAX_STRING_LENGTH
+    global MAX_PRINT_ARRAY_SIZE
+    global ONLY_SHOW_RESULTS
+    global SHOW_POS_INFO
+    global SHOW_RAW
+    global TRUNCATE_VALUES
+
+    verb = verb.upper()
+
+    if verb == 'DEBUG' or verb == 'DEFAULT' or verb == '':
+        PRINT_VERBOSE = True
+        MAX_STRING_LENGTH = 1000
+        MAX_PRINT_ARRAY_SIZE = 1000
+        ONLY_SHOW_RESULTS = False
+        SHOW_POS_INFO = True
+        SHOW_RAW = True
+        TRUNCATE_VALUES = True
+    elif verb == 'DEBUG_EX':
+        PRINT_VERBOSE = True
+        MAX_STRING_LENGTH = 200
+        MAX_PRINT_ARRAY_SIZE = 100
+        ONLY_SHOW_RESULTS = True
+        SHOW_POS_INFO = True
+        SHOW_RAW = False
+        TRUNCATE_VALUES = True
+    elif verb == 'RESULTS':
+        PRINT_VERBOSE = True
+        MAX_STRING_LENGTH = 200
+        MAX_PRINT_ARRAY_SIZE = 100
+        ONLY_SHOW_RESULTS = True
+        SHOW_POS_INFO = False
+        SHOW_RAW = False
+        TRUNCATE_VALUES = True
+    elif verb == 'RESULTS_EX':
+        PRINT_VERBOSE = True
+        MAX_STRING_LENGTH = 200
+        MAX_PRINT_ARRAY_SIZE = 100
+        ONLY_SHOW_RESULTS = True
+        SHOW_POS_INFO = True
+        SHOW_RAW = False
+        TRUNCATE_VALUES = True
+    elif verb == 'FULL':
+        PRINT_VERBOSE = True
+        MAX_STRING_LENGTH = 9999
+        MAX_PRINT_ARRAY_SIZE = 9999
+        ONLY_SHOW_RESULTS = False
+        SHOW_POS_INFO = True
+        SHOW_RAW = True
+        TRUNCATE_VALUES = True
+    else:  # SILENT
+        PRINT_VERBOSE = False
+        MAX_STRING_LENGTH = 1
+        MAX_PRINT_ARRAY_SIZE = 1
+        ONLY_SHOW_RESULTS = True
+        SHOW_POS_INFO = False
+        SHOW_RAW = False
+        TRUNCATE_VALUES = True
+
+
+set_log_verbosity('RESULTS_EX')
 
 # begin
 global test_data
