@@ -46,3 +46,15 @@ providing direct access to the file on a local filesystem.
   which incorporates vectorscan into the project starting from 
   [Nosey Parker v0.13.0](https://github.com/praetorian-inc/noseyparker/releases/tag/v0.13.0).
   * This is a relatively trivial task if ARM is not a required deployment target
+
+## Examples
+
+### String literal extraction
+_The following is a regular expression match produced against a string extract._
+
+![alt text](docs/screenshot_1.png)
+
+### Regular Expression pattern match
+_The following is a regular expression match produced by matching a pattern against an **extracted string**._
+
+![alt text](docs/screenshot_2.png)
