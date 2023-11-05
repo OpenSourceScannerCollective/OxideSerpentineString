@@ -2,7 +2,12 @@
 # Introduction
 
 OxideSerpentineString is a library with a goal to reduce False Positive Rate (FPR) of detecting RegEx patterns in source
- code (Python, JavaScript, etc.) and data (JSON, TOML, CSV, etc.)
+ code (Python, JavaScript, etc.) and data (JSON, TOML, CSV, etc.).
+
+#### note:
+* The rust project is called 'oxide_serpentine_string' (for now). 
+* The Python library is called 'xtractor'.
+* The main reason for this disparity is to shorten the name for use in Python
 
 
 ## Features
