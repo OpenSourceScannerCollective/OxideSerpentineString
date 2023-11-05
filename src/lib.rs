@@ -4,6 +4,7 @@ mod language;
 use pyo3::prelude::*;
 
 #[pymodule]
+#[pyo3(name="xtractor")]
 fn oxide_serpentine_string(_py: Python, m: &PyModule) -> PyResult<()> {
 
     // Parsing

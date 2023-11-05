@@ -77,3 +77,7 @@ docs/_build/
 
 # Rust
 .cargo
+
+# pyo3 build arterfacts
+python/**/*.so
+python/**/*.dylib

@@ -1,6 +1,6 @@
 import os
 import re
-import oxide_serpentine_string
+import xtractor
 from termcolor import colored, cprint
 
 def parser(filepath, lang, verbose):
@@ -13,7 +13,7 @@ def parser(filepath, lang, verbose):
               colored(" # ", "white", "on_red"))
 
     try:
-        results = oxide_serpentine_string.parse_with_lang_str(data, lang)
+        results = xtractor.parse_with_lang_str(data, lang)
     except:
         print("Unable to parse input for: " + lang)
         results = []
@@ -35,16 +35,16 @@ def print_ParseResults(results, verbose=True):
               colored(str(len(results)), "light_grey") +
               colored("]", "dark_grey"))
 
-        if res.kind == oxide_serpentine_string.ParseMatchType.StringLiteral:
+        if res.kind == xtractor.ParseMatchType.StringLiteral:
             kind = colored("<string>", "yellow")
-        elif res.kind == oxide_serpentine_string.ParseMatchType.Comment:
+        elif res.kind == xtractor.ParseMatchType.Comment:
             kind = colored("<comment>", "magenta")
         else:
             kind = colored("<unknown>", "red")
 
         print(colored("\tkind: ", "dark_grey") + kind)
         print(colored("\tlanguage: ", "dark_grey") +
-              colored(oxide_serpentine_string.lang_to_str(res.language), "light_grey"))
+              colored(xtractor.lang_to_str(res.language), "light_grey"))
 
         print(colored("\tvalue:", "dark_grey") + colored(trunc_str(res.value), "light_grey"))
         if SHOW_RAW:
@@ -156,7 +156,7 @@ def do_regex(pattern, filepath, verbose):
               colored(")", "light_grey", "on_red") +
               colored(" # ", "white", "on_red"))
 
-    results = oxide_serpentine_string.do_regex(data)
+    results = xtractor.do_regex(data)
 
     if verbose and len(results) < 1:
         print("Matches: 0")
@@ -183,7 +183,7 @@ def detect_lang(lang, verbose):
             detect_path_arr = [fpath]
 
         for index, path in enumerate(detect_path_arr):
-            detected_lang = oxide_serpentine_string.detect_lang(data, path)
+            detected_lang = xtractor.detect_lang(data, path)
             path = "\"" + path + "\""
 
             if not verb:

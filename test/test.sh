@@ -1,4 +1,5 @@
 #!/bin/bash
 python3 -m venv .env
 source .env/bin/activate
-python ./test/test.py
+cd ./python/oxide_serpentine_string
+python test.py
