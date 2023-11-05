@@ -73,8 +73,11 @@ contains the same characters required to define a string (typically: " ", ' ')
   which incorporates vectorscan into the project starting from 
   [Nosey Parker v0.13.0](https://github.com/praetorian-inc/noseyparker/releases/tag/v0.13.0).
   * This is a relatively trivial task if ARM is not a required deployment target
-* Consider migrating to use [faster-pest](https://github.com/mubelotix/faster-pest)
-  * 
+* Consider migrating to PEST alternatives
+  * [faster-pest](https://github.com/mubelotix/faster-pest)
+  * [nom](https://github.com/rust-bakery/nom) ([Pest vs Nom](https://unhandledexpression.com/general/2018/10/04/no-pest-is-not-faster-than-nom.html))
+  * [Benchmarks](https://github.com/rust-bakery/parser_benchmarks)
+
 
 ## Examples
 
