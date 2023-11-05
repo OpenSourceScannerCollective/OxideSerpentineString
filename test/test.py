@@ -168,10 +168,19 @@ def detect_lang(lang, verbose):
         with open(fpath) as f:
             data = f.read()
 
-        for index, path in enumerate([fpath]):  # don't detect language by contents
-            # for index, path in enumerate([fpath, ""]):
+        if DETECT_LANG_CONTENT_ONLY:
+            # empty string attempts language detection by content alone
+            # language detection without file extension is notoriously poor
+            # regardless of the library, apparently.
+            # this behaviour uses hyperpolyglot which is a rust implementation
+            # of GitHub's linguist, which is used to detect programming languages
+            # in GitHub repos
+            detect_path_arr = [""]
+        else:
+            detect_path_arr = [fpath]
+
+        for index, path in enumerate(detect_path_arr):
             detected_lang = oxide_serpentine_string.detect_lang(data, path)
-            #     detected_lang = oxide_serpentine_string.detect_lang_file(path)
             path = "\"" + path + "\""
 
             if not verb:
@@ -304,6 +313,9 @@ def set_log_verbosity(verb='DEBUG'):
     global SHOW_RAW
     global TRUNCATE_VALUES
 
+    global DETECT_LANG_CONTENT_ONLY
+    DETECT_LANG_CONTENT_ONLY = False
+
     if os.environ.get('PRINT_VERB_LEVEL'):
         verb = os.environ.get('PRINT_VERB_LEVEL')
 
@@ -315,7 +327,7 @@ def set_log_verbosity(verb='DEBUG'):
         MAX_PRINT_ARRAY_SIZE = 5
         ONLY_SHOW_RESULTS = False
         SHOW_POS_INFO = False
-        SHOW_RAW = True
+        SHOW_RAW = False
         TRUNCATE_VALUES = True
     elif verb == 'DEBUG_EX':
         PRINT_VERBOSE = True
@@ -378,6 +390,6 @@ global test_lang_data
 lang_valid_exts = ['.js', '.py', '.toml', '.csv', '.json']
 test_lang_data = get_directories_with_files('./test/language/', './test/language/', lang_valid_exts)
 
-test_detect_lang(PRINT_VERBOSE)
+# test_detect_lang(PRINT_VERBOSE)
+# lang_regex(PRINT_VERBOSE)
 lang_parser(PRINT_VERBOSE)
-lang_regex(PRINT_VERBOSE)
