@@ -7,8 +7,15 @@ OxideSerpentineString is a library with a goal to reduce False Positive Rate (FP
 
 ## Features
 
-* **[_High performance_](https://github.com/mariomka/regex-benchmark)** Rust Library built with Python 3.x bindings 
-allowing for the Python scripts to use **import** to access functionality.
+* **[_High performance_](https://github.com/mariomka/regex-benchmark)** Library
+  * [Rust](https://www.rust-lang.org/) programming language which is very high performance, especially 
+   when [compared](https://marshalshi.medium.com/performance-comparison-rust-vs-pyo3-vs-python-6480709be8d) to 
+   interpreted languages such Python 
+  * [PEST](https://pest.rs/) Parsing Expression Grammar (PEG) Parser Generator which not only offers richer 
+  functionality than typical RegEx for certain use cases, but is also exceptionally efficient.
+  * Rust [regex](https://crates.io/crates/regex) crate which is one of the highest performing regular 
+  expression engines available (Hyperscan is superior in raw performance, but not as portable)
+* **Python 3.x** bindings allowing for the Python scripts to use python's **import** to access functionality.
 * **Extract string literals** from supported languages (Python, JavaScript) and data structures (JSON, TOML, CSV)
 * **Secret Detection** via Regular Expression matching against known secrets (Google API Key, etc.)
 * **Metadata** for string literal extracts, and regex matches:
@@ -53,7 +60,7 @@ contains the same characters required to define a string (typically: " ", ' ')
   * This can be used with additional logic to check if the string is being assigned to a 'password' variable
 
 #### Performance
-* Migrate to using Hyperscan Regular Expression engine
+* Consider migrating to using the Hyperscan Regular Expression engine
   * The Rust [Regex crate](https://crates.io/crates/regex) is very high performance (44x Python), but there may be
     (an) even more performant option(s) available, but they are not as portable. 
   * [Hyperscan](https://github.com/intel/hyperscan) is the fastest Regular Expression engine available 
@@ -67,6 +74,8 @@ contains the same characters required to define a string (typically: " ", ' ')
   which incorporates vectorscan into the project starting from 
   [Nosey Parker v0.13.0](https://github.com/praetorian-inc/noseyparker/releases/tag/v0.13.0).
   * This is a relatively trivial task if ARM is not a required deployment target
+* Consider migrating to use [faster-pest](https://github.com/mubelotix/faster-pest)
+  * 
 
 ## Examples
 
