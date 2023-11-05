@@ -14,9 +14,10 @@ use crate::patterns::{do_regex, RegexMatchCollection};
 use snailquote::unescape as snail_unescape;
 
 #[pyclass(get_all)]
-#[derive(Clone, Copy, EnumString, Display )]
+#[derive(Default, Clone, Copy, EnumString, Display )]
 #[strum(ascii_case_insensitive)]
 pub enum ProgrammingLanguage {
+    #[default]
     Unknown,
     Python,
     JavaScript,
@@ -32,10 +33,23 @@ pub fn lang_from_str(str_input: &str) -> ProgrammingLanguage {
     return ProgrammingLanguage::from_str(str_input).unwrap();
 }
 
+#[pyfunction]
+#[allow(dead_code)]
+pub fn lang_to_str(lang: ProgrammingLanguage) -> PyResult<String> {
+    return Ok(lang.to_string());
+}
+
+#[pyfunction]
+#[allow(dead_code)]
+pub fn kind_to_str(kind: ParseMatchType) -> PyResult<String> {
+    return Ok(kind.to_string());
+}
+
 #[pyclass(get_all)]
 #[derive(Default, Clone)]
 pub struct ParseMatch {
     pub kind: ParseMatchType,
+    pub language: ProgrammingLanguage,
     pub value: String,
     pub raw: String,
     pub position: MatchPos,
@@ -43,7 +57,7 @@ pub struct ParseMatch {
 }
 
 impl ParseMatch {
-    fn from(rule_str: ParseMatchType, value_str: &str, raw_str: &str, inner_span: Span) -> ParseMatch {
+    fn from(rule_str: ParseMatchType, lang: ProgrammingLanguage, value_str: &str, raw_str: &str, inner_span: Span) -> ParseMatch {
         let source_pos = MatchPos {
             char: MatchSpan {
                 start: inner_span.start_pos().pos(),
@@ -59,6 +73,7 @@ impl ParseMatch {
 
         let p_match = ParseMatch {
             kind: rule_str,
+            language: lang,
             value: str_value.to_owned(),
             raw: raw_str.to_string(),
             position: source_pos.clone(),

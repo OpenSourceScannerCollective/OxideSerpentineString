@@ -41,9 +41,12 @@ def print_ParseResults(results, verbose=True):
             kind = colored("<comment>", "magenta")
         else:
             kind = colored("<unknown>", "red")
+
         print(colored("\tkind: ", "dark_grey") + kind)
-        print(colored("\tvalue:", "dark_grey") +
-              colored(trunc_str(res.value), "light_grey"))
+        print(colored("\tlanguage: ", "dark_grey") +
+              colored(oxide_serpentine_string.lang_to_str(res.language), "light_grey"))
+
+        print(colored("\tvalue:", "dark_grey") + colored(trunc_str(res.value), "light_grey"))
         if SHOW_RAW:
             print(colored("\traw:", "dark_grey"), colored(trunc_str(res.raw), "light_grey"))
         print_MatchPos(res.position, "\t", "position", verbose)

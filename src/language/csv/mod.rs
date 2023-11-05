@@ -1,7 +1,7 @@
 use pest::iterators::Pairs;
 use pest::Parser;
 use pest_derive::Parser;
-use crate::language::{ParseMatch, ParseMatchType};
+use crate::language::{ParseMatch, ParseMatchType, ProgrammingLanguage};
 
 #[derive(Parser)]
 #[grammar = "./language/csv/grammar.pest"]
@@ -33,7 +33,11 @@ pub fn parse(str_input: &str) -> Vec<ParseMatch>  {
                 }
             }
 
-            let parse_match = ParseMatch::from(rule_str,match_contents,inner_pair.as_str(), inner_pair.as_span());
+            let parse_match = ParseMatch::from(rule_str,
+                                               ProgrammingLanguage::Csv,
+                                               match_contents,
+                                               inner_pair.as_str(),
+                                               inner_pair.as_span());
             tokens.push( parse_match);
         }
     }
