@@ -21,6 +21,18 @@ Python 3.x regular expression library.
 implementation of the GitHub [Linguist](https://github.com/github-linguist/linguist) project, which is used by GitHub 
 as the engine of its own language detection feature. A custom fork was necessary in order to analyse strings without 
 providing direct access to the file on a local filesystem.
+* String values are un-escaped by default, increasing coverage for pattern detection
+  * Character combinations consisting of a backslash (\) followed by a letter or by a combination of digits are called 
+ "escape sequences." To represent a newline character, single quotation mark, or certain other characters in a character
+constant, you must use escape sequences. 
+source: [Microsoft C++ Overview](https://learn.microsoft.com/en-us/cpp/c-language/escape-sequences?view=msvc-170)
+  * There are certain circumstances where escape sequences are absolutely necessary, for instances when the string 
+contains the same characters required to define a string (typically: " ", ' ') 
+  * For example:
+    * Plain Text: my secret password is "1234" and nobody knows
+    * String Literal: "my secret password is \\"1234\\" and nobody knows"
+  * This presents a problem for pattern detection because some strings may or may not be escaped
+  * **This problem is solved in this library by automatically escaping all detected strings**
 
 ## Recommended Improvements
 
