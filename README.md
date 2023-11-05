@@ -32,7 +32,7 @@ contains the same characters required to define a string (typically: " ", ' ')
     * Plain Text: my secret password is "1234" and nobody knows
     * String Literal: "my secret password is \\"1234\\" and nobody knows"
   * This presents a problem for pattern detection because some strings may or may not be escaped
-  * **This problem is solved in this library by automatically escaping all detected strings**
+  * **This problem is solved in this library because _all strings are un-escaped automatically_**
 
 ## Recommended Improvements
 
