@@ -15,4 +15,4 @@ dynamic = ["version"]
 [tool.maturin]
 features = ["pyo3/extension-module"]
 python-source = "python"
-module-name = "oxide_serpentine_string.xtractor"
+module-name = "oxide_serpentine_string.oxide_serpentine_string"
