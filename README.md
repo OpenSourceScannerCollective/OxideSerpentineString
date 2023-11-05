@@ -14,14 +14,22 @@ allowing for the Python scripts to use **import** to access functionality.
 * **Metadata** for string literal extracts, and regex matches:
   * Line of Code (start, end)
   * Character position (start, end)
-  * Position information in match, and source
+  * Position information in both the **Source Text** and the **String Literal Extract**
+    * The ability to identify where a regex match occurred not only in the entire body, but the string itself means it 
+    is possible to determine whether the match is a substring or part of a larger string.
+    * This information is useful because it can ba used to determine whether a pattern is part of a larger document/file
+    or whether it is part of a single configuration or key/value pair
+    * It also makes it easier to pinpoint exactly where a match occurs. Most similar engines will only determine the 
+    start line number (line of code, or LOC) but if the match occurs in a larger string body, then it will not 
+    necessarily indicate the _**exact**_ place in the source text body, or the string literal where a match occurred.
 * **Rust RegEx engine** provided to Python via function calls, which is _**upto 440%**_ times faster than the native 
 Python 3.x regular expression library.
 * **Source-code language detection** via a fork of [Hyperpolyglot](https://github.com/monkslc/hyperpolyglot) which is an 
 implementation of the GitHub [Linguist](https://github.com/github-linguist/linguist) project, which is used by GitHub 
 as the engine of its own language detection feature. A custom fork was necessary in order to analyse strings without 
 providing direct access to the file on a local filesystem.
-* String values are un-escaped by default, increasing coverage for pattern detection
+* **Strings are un-escaped** increasing pattern detection coverage
+  * It is likely that there are occurrences where findings are produced because a string contains escaped strings.
   * Character combinations consisting of a backslash (\) followed by a letter or by a combination of digits are called 
  "escape sequences." To represent a newline character, single quotation mark, or certain other characters in a character
 constant, you must use escape sequences. 
